@@ -69,7 +69,8 @@ const en: Record<string, string> = {
 
   // Footer
   feedback: "Feedback & Issues",
-  openSourceNotice: "Open source · All data stored locally · Your API keys never leave your browser",
+  openSource: "Open source",
+  privacyNotice: "All data stored locally · Your API keys never leave your browser",
 } as const;
 
 export type Locale = Record<string, string>;

@@ -207,7 +207,15 @@ export default function App({ lang, onLangChange }: AppProps) {
       <div className="px-4 py-2 border-t border-border space-y-1">
         {/* 安全提示 */}
         <p className="text-[10px] text-muted-foreground/60 text-center">
-          {t.openSourceNotice}
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
+          >
+            {t.openSource}
+          </a>
+          {" · "}{t.privacyNotice}
         </p>
         <div className="flex items-center justify-between">
           {hasKeys && (

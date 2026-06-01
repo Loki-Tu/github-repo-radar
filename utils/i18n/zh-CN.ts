@@ -69,7 +69,8 @@ const zhCN: Record<string, string> = {
 
   // Footer
   feedback: "反馈与建议",
-  openSourceNotice: "开源项目 · 数据仅存本地 · API Key 不会离开你的浏览器",
+  openSource: "开源项目",
+  privacyNotice: "数据仅存本地 · API Key 不会离开你的浏览器",
 } as const;
 
 export default zhCN;
