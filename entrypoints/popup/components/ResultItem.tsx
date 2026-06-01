@@ -1,4 +1,5 @@
 import type { RankedResult } from "../../../utils/core/types";
+import { useI18n } from "../../../utils/i18n";
 
 interface ResultItemProps {
   result: RankedResult;
@@ -6,8 +7,9 @@ interface ResultItemProps {
 }
 
 export default function ResultItem({ result, rank }: ResultItemProps) {
+  const t = useI18n();
   const { repo, score, cosine_similarity, topic_overlap } = result;
-  const desc = repo.description || "无描述";
+  const desc = repo.description || t.noDescription;
   const truncatedDesc = desc.length > 80 ? desc.slice(0, 77) + "..." : desc;
 
   const formatStars = (n: number): string => {
@@ -48,13 +50,13 @@ export default function ResultItem({ result, rank }: ResultItemProps) {
           {/* 分数标签 */}
           <div className="flex gap-2 mt-1.5">
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-              综合 {score.toFixed(2)}
+              {t.score} {score.toFixed(2)}
             </span>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-              语义 {cosine_similarity.toFixed(2)}
+              {t.semantic} {cosine_similarity.toFixed(2)}
             </span>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-              Topic {topic_overlap.toFixed(2)}
+              {t.topic} {topic_overlap.toFixed(2)}
             </span>
           </div>
         </div>

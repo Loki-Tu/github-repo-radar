@@ -63,9 +63,11 @@ export async function getApiConfig(): Promise<ApiConfig> {
   const saved = result[CONFIG_KEY] as Partial<ApiConfig> | undefined;
   return {
     githubToken: saved?.githubToken ?? "",
+    llmPlatformId: saved?.llmPlatformId ?? "openai",
     llmApiKey: saved?.llmApiKey ?? "",
     llmModel: saved?.llmModel ?? DEFAULT_CONFIG.llmModel,
     llmApiBase: saved?.llmApiBase ?? DEFAULT_CONFIG.llmApiBase,
+    embeddingPlatformId: saved?.embeddingPlatformId ?? "siliconflow",
     embeddingApiKey: saved?.embeddingApiKey ?? "",
     embeddingModel: saved?.embeddingModel ?? DEFAULT_CONFIG.embeddingModel,
     embeddingApiBase: saved?.embeddingApiBase ?? DEFAULT_CONFIG.embeddingApiBase,

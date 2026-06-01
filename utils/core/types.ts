@@ -54,9 +54,11 @@ export interface ProgressInfo {
 /** API 配置 */
 export interface ApiConfig {
   githubToken: string;
+  llmPlatformId: string;
   llmApiKey: string;
   llmModel: string;
   llmApiBase: string;
+  embeddingPlatformId: string;
   embeddingApiKey: string;
   embeddingModel: string;
   embeddingApiBase: string;

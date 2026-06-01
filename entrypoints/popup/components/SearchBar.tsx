@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useI18n } from "../../../utils/i18n";
 
 interface SearchBarProps {
   onSearch: (url: string) => void;
@@ -8,6 +9,7 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ onSearch, disabled, initialUrl }: SearchBarProps) {
+  const t = useI18n();
   const [url, setUrl] = useState(initialUrl ?? "");
 
   // 优先用 initialUrl（恢复上次搜索），否则自动检测当前 GitHub 页面
@@ -37,7 +39,7 @@ export default function SearchBar({ onSearch, disabled, initialUrl }: SearchBarP
         type="text"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        placeholder="GitHub 仓库 URL，例如 https://github.com/fastapi/fastapi"
+        placeholder={t.searchPlaceholder}
         disabled={disabled}
         className="flex-1 px-3 py-2 text-sm rounded-md border border-input bg-background
                    focus:outline-none focus:ring-2 focus:ring-ring
@@ -52,7 +54,7 @@ export default function SearchBar({ onSearch, disabled, initialUrl }: SearchBarP
                    disabled:opacity-50 disabled:cursor-not-allowed
                    whitespace-nowrap"
       >
-        {disabled ? "搜索中..." : "搜索"}
+        {disabled ? t.searching : t.search}
       </button>
     </form>
   );

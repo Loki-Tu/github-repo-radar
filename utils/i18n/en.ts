@@ -1,0 +1,60 @@
+const en: Record<string, string> = {
+  appName: "GitHub Repo Radar",
+
+  // Search bar
+  searchPlaceholder: "GitHub repo URL, e.g. https://github.com/fastapi/fastapi",
+  search: "Search",
+  searching: "Searching...",
+  backToSearch: "← New search",
+
+  // Idle state
+  idleNoKey: "👋 Configure your API keys in Settings below to get started",
+  idleReady: "Enter a GitHub repo URL to discover similar projects",
+
+  // Settings
+  settings: "Settings",
+  needsConfig: "API keys required",
+  githubToken: "GitHub Token",
+  githubTokenHint: "Recommended — raises rate limit to 5,000 req/hr",
+  llmPlatform: "LLM Platform",
+  embeddingPlatform: "Embedding Platform",
+  apiKey: "API Key",
+  apiBase: "API Base URL",
+  model: "Model",
+  selectPlatform: "Select a platform...",
+  save: "Save",
+  saved: "✓ Saved",
+
+  // Platforms
+  platformOpenai: "OpenAI",
+  platformAnthropic: "Anthropic",
+  platformSiliconFlow: "SiliconFlow",
+  platformOpenaiCompatible: "OpenAI Compatible",
+  platformAnthropicCompatible: "Anthropic Compatible",
+
+  // Progress stages
+  stageFetching: "Fetching repo data",
+  stageExtracting: "LLM feature extraction",
+  stageRecalling: "Parallel multi-path recall",
+  stageFiltering: "Fast filtering",
+  stageFetchingReadmes: "Fetching READMEs",
+  stageEmbedding: "Generating embeddings",
+  stageRanking: "Precise ranking",
+
+  // Results
+  topResults: "Top {count} Similar Projects",
+  target: "Target:",
+  scoreFormula: "Score = Semantic×0.6 + Topic×0.3 + Activity×0.1",
+  noDescription: "No description",
+  score: "Score",
+  semantic: "Semantic",
+  topic: "Topic",
+
+  // Errors
+  errorNoKeys: "Please configure LLM API Key and Embedding API Key in Settings first",
+  errorNoResults: "No similar repos found. Check your network or API config",
+  retry: "Retry",
+} as const;
+
+export type Locale = Record<string, string>;
+export default en;

@@ -1,4 +1,5 @@
 import type { RankedResult } from "../../../utils/core/types";
+import { useI18n } from "../../../utils/i18n";
 import ResultItem from "./ResultItem";
 
 interface ResultListProps {
@@ -7,16 +8,17 @@ interface ResultListProps {
 }
 
 export default function ResultList({ results, targetName }: ResultListProps) {
+  const t = useI18n();
   if (results.length === 0) return null;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">
-          🏆 Top {results.length} 相关项目
+          {t.topResults.replace("{count}", String(results.length))}
         </h2>
         <span className="text-xs text-muted-foreground">
-          目标: {targetName}
+          {t.target} {targetName}
         </span>
       </div>
       <div className="space-y-1.5">
@@ -25,7 +27,7 @@ export default function ResultList({ results, targetName }: ResultListProps) {
         ))}
       </div>
       <p className="text-[10px] text-muted-foreground text-center pt-1">
-        综合得分 = 语义×0.6 + Topic×0.3 + 活跃度×0.1
+        {t.scoreFormula}
       </p>
     </div>
   );

@@ -1,14 +1,5 @@
 import type { ProgressInfo } from "../../../utils/core/types";
-
-const STAGE_LABELS: Record<string, string> = {
-  fetching: "📥 获取仓库数据",
-  extracting: "🤖 LLM 特征提取",
-  recalling: "🔍 并行多路召回",
-  filtering: "⚡ 快速过滤",
-  "fetching-readmes": "📄 获取 README",
-  embedding: "🧮 生成 Embedding",
-  ranking: "📊 精准排序",
-};
+import { useI18n } from "../../../utils/i18n";
 
 const STAGE_ORDER = [
   "fetching",
@@ -18,16 +9,27 @@ const STAGE_ORDER = [
   "fetching-readmes",
   "embedding",
   "ranking",
-];
+] as const;
 
 interface ProgressIndicatorProps {
   progress: ProgressInfo | null;
 }
 
 export default function ProgressIndicator({ progress }: ProgressIndicatorProps) {
+  const t = useI18n();
   if (!progress) return null;
 
-  const currentIndex = STAGE_ORDER.indexOf(progress.stage);
+  const stageLabels: Record<string, string> = {
+    fetching: `📥 ${t.stageFetching}`,
+    extracting: `🤖 ${t.stageExtracting}`,
+    recalling: `🔍 ${t.stageRecalling}`,
+    filtering: `⚡ ${t.stageFiltering}`,
+    "fetching-readmes": `📄 ${t.stageFetchingReadmes}`,
+    embedding: `🧮 ${t.stageEmbedding}`,
+    ranking: `📊 ${t.stageRanking}`,
+  };
+
+  const currentIndex = STAGE_ORDER.indexOf(progress.stage as typeof STAGE_ORDER[number]);
 
   return (
     <div className="space-y-3 py-3">
@@ -68,7 +70,7 @@ export default function ProgressIndicator({ progress }: ProgressIndicatorProps) 
                   : "bg-muted text-muted-foreground"
             }`}
           >
-            {STAGE_LABELS[stage]}
+            {stageLabels[stage]}
           </span>
         ))}
       </div>

@@ -11,6 +11,7 @@ import {
   clearSearchState,
 } from "../../utils/lib/storage";
 import { runPipeline } from "../../utils/core/pipeline";
+import { useI18n, type Lang } from "../../utils/i18n";
 import SearchBar from "./components/SearchBar";
 import ProgressIndicator from "./components/ProgressIndicator";
 import ResultList from "./components/ResultList";
@@ -18,7 +19,13 @@ import SettingsPanel from "./components/SettingsPanel";
 
 type AppState = "idle" | "searching" | "results" | "error";
 
-export default function App() {
+interface AppProps {
+  lang: Lang;
+  onLangChange: (lang: Lang) => void;
+}
+
+export default function App({ lang, onLangChange }: AppProps) {
+  const t = useI18n();
   const [state, setState] = useState<AppState>("idle");
   const [config, setConfig] = useState<ApiConfig | null>(null);
   const [progress, setProgress] = useState<ProgressInfo | null>(null);
@@ -44,9 +51,8 @@ export default function App() {
     async (url: string) => {
       if (!config) return;
 
-      // 检查必要的 API Key
       if (!config.llmApiKey || !config.embeddingApiKey) {
-        setError("请先在设置中配置 LLM API Key 和 Embedding API Key");
+        setError(t.errorNoKeys);
         setState("error");
         return;
       }
@@ -64,9 +70,8 @@ export default function App() {
         setState(result.results.length > 0 ? "results" : "error");
 
         if (result.results.length === 0) {
-          setError("未找到相似仓库，请检查网络或 API 配置");
+          setError(t.errorNoResults);
         } else {
-          // 持久化搜索结果
           await setSearchState({
             results: result.results,
             targetName: result.repo.full_name,
@@ -79,7 +84,7 @@ export default function App() {
         setState("error");
       }
     },
-    [config],
+    [config, t],
   );
 
   const handleReset = useCallback(async () => {
@@ -96,16 +101,27 @@ export default function App() {
       <div className="px-4 pt-4 pb-2 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-base font-bold flex items-center gap-1.5">
-            🎯 GitHub Repo Radar
+            🎯 {t.appName}
           </h1>
-          {state !== "idle" && state !== "searching" && (
+          <div className="flex items-center gap-2">
+            {state !== "idle" && state !== "searching" && (
+              <button
+                onClick={handleReset}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t.backToSearch}
+              </button>
+            )}
+            {/* 语言切换 */}
             <button
-              onClick={handleReset}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => onLangChange(lang === "en" ? "zh-CN" : "en")}
+              className="text-xs px-2 py-0.5 rounded border border-border
+                         text-muted-foreground hover:text-foreground hover:border-ring
+                         transition-colors"
             >
-              ← 重新搜索
+              {lang === "en" ? "中文" : "EN"}
             </button>
-          )}
+          </div>
         </div>
 
         <SearchBar
@@ -120,17 +136,13 @@ export default function App() {
         {/* Idle state */}
         {state === "idle" && !config?.llmApiKey && (
           <div className="text-center py-8">
-            <p className="text-sm text-muted-foreground">
-              👋 请先在下方设置中配置 API Key
-            </p>
+            <p className="text-sm text-muted-foreground">{t.idleNoKey}</p>
           </div>
         )}
 
         {state === "idle" && config?.llmApiKey && (
           <div className="text-center py-8">
-            <p className="text-sm text-muted-foreground">
-              输入 GitHub 仓库 URL，点击搜索发现相似项目
-            </p>
+            <p className="text-sm text-muted-foreground">{t.idleReady}</p>
           </div>
         )}
 
@@ -150,7 +162,7 @@ export default function App() {
               onClick={handleReset}
               className="text-xs text-muted-foreground hover:text-foreground underline"
             >
-              重试
+              {t.retry}
             </button>
           </div>
         )}

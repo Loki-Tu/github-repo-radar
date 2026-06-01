@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
 import type { ApiConfig } from "../../../utils/core/types";
 import { getApiConfig, setApiConfig } from "../../../utils/lib/storage";
-import { DEFAULT_CONFIG } from "../../../utils/config";
+import { useI18n } from "../../../utils/i18n";
+import {
+  LLM_PLATFORMS,
+  EMBEDDING_PLATFORMS,
+  findPlatform,
+  type PlatformPreset,
+} from "../../../utils/platforms";
 
 interface SettingsPanelProps {
   onConfigSaved: (config: ApiConfig) => void;
 }
 
 export default function SettingsPanel({ onConfigSaved }: SettingsPanelProps) {
+  const t = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState<ApiConfig | null>(null);
   const [saved, setSaved] = useState(false);
@@ -24,9 +31,35 @@ export default function SettingsPanel({ onConfigSaved }: SettingsPanelProps) {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  /** 选择 LLM 平台后自动填充 base URL 和默认模型 */
+  const handleLlmPlatformChange = (platformId: string) => {
+    const preset = findPlatform(LLM_PLATFORMS, platformId);
+    if (!config || !preset) return;
+    setConfig({
+      ...config,
+      llmPlatformId: platformId,
+      llmApiBase: preset.requiresBaseUrl ? "" : preset.defaultBase,
+      llmModel: preset.requiresBaseUrl ? "" : preset.defaultModel,
+    });
+  };
+
+  /** 选择 Embedding 平台后自动填充 */
+  const handleEmbeddingPlatformChange = (platformId: string) => {
+    const preset = findPlatform(EMBEDDING_PLATFORMS, platformId);
+    if (!config || !preset) return;
+    setConfig({
+      ...config,
+      embeddingPlatformId: platformId,
+      embeddingApiBase: preset.requiresBaseUrl ? "" : preset.defaultBase,
+      embeddingModel: preset.requiresBaseUrl ? "" : preset.defaultModel,
+    });
+  };
+
   if (!config) return null;
 
   const hasRequiredKeys = config.llmApiKey && config.embeddingApiKey;
+  const llmPreset = findPlatform(LLM_PLATFORMS, config.llmPlatformId);
+  const embPreset = findPlatform(EMBEDDING_PLATFORMS, config.embeddingPlatformId);
 
   return (
     <div className="border-t border-border pt-3 mt-3">
@@ -37,16 +70,16 @@ export default function SettingsPanel({ onConfigSaved }: SettingsPanelProps) {
         <span className={`transition-transform ${isOpen ? "rotate-90" : ""}`}>
           ▶
         </span>
-        <span>⚙️ API 设置</span>
+        <span>⚙️ {t.settings}</span>
         {!hasRequiredKeys && (
-          <span className="ml-auto text-xs text-red-500">需要配置 API Key</span>
+          <span className="ml-auto text-xs text-red-500">{t.needsConfig}</span>
         )}
       </button>
 
       {isOpen && (
-        <div className="mt-3 space-y-3">
-          {/* GitHub Token */}
-          <FieldGroup label="GitHub Token（推荐）">
+        <div className="mt-3 space-y-4">
+          {/* ── GitHub Token ── */}
+          <FieldGroup label={t.githubToken} hint={t.githubTokenHint}>
             <input
               type="password"
               value={config.githubToken}
@@ -58,86 +91,49 @@ export default function SettingsPanel({ onConfigSaved }: SettingsPanelProps) {
             />
           </FieldGroup>
 
-          {/* LLM API */}
-          <FieldGroup label="LLM API Key *">
-            <input
-              type="password"
-              value={config.llmApiKey}
-              onChange={(e) =>
-                setConfig({ ...config, llmApiKey: e.target.value })
-              }
-              placeholder="sk-xxx..."
-              className="setting-input"
-            />
-          </FieldGroup>
+          {/* ── LLM 平台 ── */}
+          <SectionDivider label={t.llmPlatform} />
+          <PlatformSelector
+            platforms={LLM_PLATFORMS}
+            selectedId={config.llmPlatformId}
+            onChange={handleLlmPlatformChange}
+          />
+          <PlatformFields
+            preset={llmPreset}
+            apiKey={config.llmApiKey}
+            apiBase={config.llmApiBase}
+            model={config.llmModel}
+            onApiKeyChange={(v) => setConfig({ ...config, llmApiKey: v })}
+            onApiBaseChange={(v) => setConfig({ ...config, llmApiBase: v })}
+            onModelChange={(v) => setConfig({ ...config, llmModel: v })}
+          />
 
-          <FieldGroup label="LLM API Base">
-            <input
-              type="text"
-              value={config.llmApiBase}
-              onChange={(e) =>
-                setConfig({ ...config, llmApiBase: e.target.value })
-              }
-              placeholder={DEFAULT_CONFIG.llmApiBase}
-              className="setting-input"
-            />
-          </FieldGroup>
+          {/* ── Embedding 平台 ── */}
+          <SectionDivider label={t.embeddingPlatform} />
+          <PlatformSelector
+            platforms={EMBEDDING_PLATFORMS}
+            selectedId={config.embeddingPlatformId}
+            onChange={handleEmbeddingPlatformChange}
+          />
+          <PlatformFields
+            preset={embPreset}
+            apiKey={config.embeddingApiKey}
+            apiBase={config.embeddingApiBase}
+            model={config.embeddingModel}
+            onApiKeyChange={(v) => setConfig({ ...config, embeddingApiKey: v })}
+            onApiBaseChange={(v) =>
+              setConfig({ ...config, embeddingApiBase: v })
+            }
+            onModelChange={(v) => setConfig({ ...config, embeddingModel: v })}
+          />
 
-          <FieldGroup label="LLM Model">
-            <input
-              type="text"
-              value={config.llmModel}
-              onChange={(e) =>
-                setConfig({ ...config, llmModel: e.target.value })
-              }
-              placeholder={DEFAULT_CONFIG.llmModel}
-              className="setting-input"
-            />
-          </FieldGroup>
-
-          {/* Embedding API */}
-          <FieldGroup label="Embedding API Key *">
-            <input
-              type="password"
-              value={config.embeddingApiKey}
-              onChange={(e) =>
-                setConfig({ ...config, embeddingApiKey: e.target.value })
-              }
-              placeholder="sk-xxx..."
-              className="setting-input"
-            />
-          </FieldGroup>
-
-          <FieldGroup label="Embedding API Base">
-            <input
-              type="text"
-              value={config.embeddingApiBase}
-              onChange={(e) =>
-                setConfig({ ...config, embeddingApiBase: e.target.value })
-              }
-              placeholder={DEFAULT_CONFIG.embeddingApiBase}
-              className="setting-input"
-            />
-          </FieldGroup>
-
-          <FieldGroup label="Embedding Model">
-            <input
-              type="text"
-              value={config.embeddingModel}
-              onChange={(e) =>
-                setConfig({ ...config, embeddingModel: e.target.value })
-              }
-              placeholder={DEFAULT_CONFIG.embeddingModel}
-              className="setting-input"
-            />
-          </FieldGroup>
-
+          {/* ── 保存按钮 ── */}
           <button
             onClick={handleSave}
             className="w-full py-2 text-sm font-medium rounded-md
                        bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
           >
-            {saved ? "✓ 已保存" : "保存设置"}
+            {saved ? t.saved : t.save}
           </button>
         </div>
       )}
@@ -156,23 +152,155 @@ export default function SettingsPanel({ onConfigSaved }: SettingsPanelProps) {
           outline: none;
           box-shadow: 0 0 0 2px hsl(var(--ring));
         }
+        .setting-select {
+          width: 100%;
+          padding: 0.375rem 0.5rem;
+          font-size: 0.75rem;
+          border-radius: 0.375rem;
+          border: 1px solid hsl(var(--input));
+          background: hsl(var(--background));
+          color: hsl(var(--foreground));
+          cursor: pointer;
+        }
+        .setting-select:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px hsl(var(--ring));
+        }
       `}</style>
+    </div>
+  );
+}
+
+// ─── 子组件 ──────────────────────────────────────────────────────────────────
+
+/** 平台选择器（下拉） */
+function PlatformSelector({
+  platforms,
+  selectedId,
+  onChange,
+}: {
+  platforms: PlatformPreset[];
+  selectedId: string;
+  onChange: (id: string) => void;
+}) {
+  const t = useI18n();
+  return (
+    <select
+      className="setting-select"
+      value={selectedId}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="" disabled>
+        {t.selectPlatform}
+      </option>
+      {platforms.map((p) => (
+        <option key={p.id} value={p.id}>
+          {p.icon} {t[p.nameKey as keyof typeof t]}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/** 根据平台预设动态渲染配置字段 */
+function PlatformFields({
+  preset,
+  apiKey,
+  apiBase,
+  model,
+  onApiKeyChange,
+  onApiBaseChange,
+  onModelChange,
+}: {
+  preset: PlatformPreset | undefined;
+  apiKey: string;
+  apiBase: string;
+  model: string;
+  onApiKeyChange: (v: string) => void;
+  onApiBaseChange: (v: string) => void;
+  onModelChange: (v: string) => void;
+}) {
+  const t = useI18n();
+  if (!preset) return null;
+
+  return (
+    <div className="space-y-2 pl-3 border-l-2 border-border">
+      {/* API Key — 所有平台都需要 */}
+      <FieldGroup label={t.apiKey}>
+        <input
+          type="password"
+          value={apiKey}
+          onChange={(e) => onApiKeyChange(e.target.value)}
+          placeholder="sk-xxx..."
+          className="setting-input"
+        />
+      </FieldGroup>
+
+      {/* Base URL — 仅 Compatible 平台显示 */}
+      {preset.requiresBaseUrl && (
+        <FieldGroup label={t.apiBase}>
+          <input
+            type="text"
+            value={apiBase}
+            onChange={(e) => onApiBaseChange(e.target.value)}
+            placeholder="https://api.example.com/v1"
+            className="setting-input"
+          />
+        </FieldGroup>
+      )}
+
+      {/* Model — 有预设列表则下拉，否则文本输入 */}
+      <FieldGroup label={t.model}>
+        {preset.models.length > 0 ? (
+          <select
+            className="setting-select"
+            value={model}
+            onChange={(e) => onModelChange(e.target.value)}
+          >
+            {preset.models.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type="text"
+            value={model}
+            onChange={(e) => onModelChange(e.target.value)}
+            placeholder="model-name"
+            className="setting-input"
+          />
+        )}
+      </FieldGroup>
+    </div>
+  );
+}
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-semibold text-foreground">{label}</span>
+      <div className="flex-1 h-px bg-border" />
     </div>
   );
 }
 
 function FieldGroup({
   label,
+  hint,
   children,
 }: {
   label: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="text-xs text-muted-foreground block mb-1">
-        {label}
-      </label>
+      <label className="text-xs text-muted-foreground block mb-1">{label}</label>
+      {hint && (
+        <p className="text-[10px] text-muted-foreground/70 mb-1">{hint}</p>
+      )}
       {children}
     </div>
   );
