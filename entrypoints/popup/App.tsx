@@ -166,14 +166,8 @@ export default function App({ lang, onLangChange }: AppProps) {
 
         {/* Idle — 已配置 */}
         {state === "idle" && hasKeys && (
-          <div className="text-center py-8 space-y-3">
+          <div className="text-center py-8">
             <p className="text-sm text-muted-foreground">{t.idleReady}</p>
-            <button
-              onClick={openSettings}
-              className="text-xs text-muted-foreground hover:text-foreground underline"
-            >
-              ⚙️ {t.settings}
-            </button>
           </div>
         )}
 
@@ -208,16 +202,18 @@ export default function App({ lang, onLangChange }: AppProps) {
         )}
       </div>
 
-      {/* Footer */}
-      <div className="px-4 py-2 border-t border-border">
-        <button
-          onClick={openSettings}
-          className="w-full text-xs text-muted-foreground hover:text-foreground
-                     transition-colors py-1"
-        >
-          ⚙️ {t.settings}
-        </button>
-      </div>
+      {/* Footer — 已配置后可二次设置 */}
+      {hasKeys && (
+        <div className="px-4 py-2 border-t border-border">
+          <button
+            onClick={openSettings}
+            className="w-full text-xs text-muted-foreground hover:text-foreground
+                       transition-colors py-1"
+          >
+            ⚙️ {t.settings}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
