@@ -3,20 +3,26 @@ import { useState, useEffect } from "react";
 interface SearchBarProps {
   onSearch: (url: string) => void;
   disabled: boolean;
+  /** 恢复上次搜索的 URL */
+  initialUrl?: string;
 }
 
-export default function SearchBar({ onSearch, disabled }: SearchBarProps) {
-  const [url, setUrl] = useState("");
+export default function SearchBar({ onSearch, disabled, initialUrl }: SearchBarProps) {
+  const [url, setUrl] = useState(initialUrl ?? "");
 
-  // 自动获取当前标签页的 URL（如果是 GitHub 页面）
+  // 优先用 initialUrl（恢复上次搜索），否则自动检测当前 GitHub 页面
   useEffect(() => {
+    if (initialUrl) {
+      setUrl(initialUrl);
+      return;
+    }
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabUrl = tabs[0]?.url || "";
       if (tabUrl.includes("github.com/")) {
         setUrl(tabUrl);
       }
     });
-  }, []);
+  }, [initialUrl]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,8 +30,6 @@ export default function SearchBar({ onSearch, disabled }: SearchBarProps) {
       onSearch(url.trim());
     }
   };
-
-  const isGitHubUrl = url.includes("github.com/");
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">

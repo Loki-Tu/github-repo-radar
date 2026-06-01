@@ -14,7 +14,8 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "openai": "^6.39.1",
+    "@ai-sdk/openai": "^3.0.67",
+    "ai": "^6.0.193",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "wxt": "^0.20.0"

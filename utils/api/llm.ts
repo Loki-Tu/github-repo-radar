@@ -1,7 +1,7 @@
 /**
  * LLM Chat API 调用层
  *
- * 通过 background script 代理，使用 OpenAI SDK 处理实际请求。
+ * 通过 background script 代理，使用 Vercel AI SDK 处理实际请求。
  * 支持所有 OpenAI 兼容的 provider（OpenAI、MiMo、SiliconFlow 等）。
  */
 
@@ -21,6 +21,6 @@ export async function chatCompletion(
   if (response.error) {
     throw new Error(response.error);
   }
-  // OpenAI SDK 返回的 ChatCompletion 对象
-  return response.data.choices[0].message.content;
+  // Vercel AI SDK generateText 返回 { text: string }
+  return response.data.text;
 }

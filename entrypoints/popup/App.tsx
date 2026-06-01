@@ -1,10 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type {
   ApiConfig,
   ProgressInfo,
   RankedResult,
 } from "../../utils/core/types";
-import { getApiConfig } from "../../utils/lib/storage";
+import {
+  getApiConfig,
+  getSearchState,
+  setSearchState,
+  clearSearchState,
+} from "../../utils/lib/storage";
 import { runPipeline } from "../../utils/core/pipeline";
 import SearchBar from "./components/SearchBar";
 import ProgressIndicator from "./components/ProgressIndicator";
@@ -19,48 +24,71 @@ export default function App() {
   const [progress, setProgress] = useState<ProgressInfo | null>(null);
   const [results, setResults] = useState<RankedResult[]>([]);
   const [targetName, setTargetName] = useState("");
+  const [lastUrl, setLastUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // 加载配置
+  // 加载配置 + 恢复上次搜索状态
   useEffect(() => {
     getApiConfig().then(setConfig);
+    getSearchState().then((saved) => {
+      if (saved && saved.results.length > 0) {
+        setResults(saved.results);
+        setTargetName(saved.targetName);
+        setLastUrl(saved.lastUrl);
+        setState("results");
+      }
+    });
   }, []);
 
-  const handleSearch = async (url: string) => {
-    if (!config) return;
+  const handleSearch = useCallback(
+    async (url: string) => {
+      if (!config) return;
 
-    // 检查必要的 API Key
-    if (!config.llmApiKey || !config.embeddingApiKey) {
-      setError("请先在设置中配置 LLM API Key 和 Embedding API Key");
-      setState("error");
-      return;
-    }
-
-    setState("searching");
-    setProgress(null);
-    setResults([]);
-    setError(null);
-
-    try {
-      const result = await runPipeline(url, config, 10, setProgress);
-      setResults(result.results);
-      setTargetName(result.repo.full_name);
-      setState(result.results.length > 0 ? "results" : "error");
-      if (result.results.length === 0) {
-        setError("未找到相似仓库，请检查网络或 API 配置");
+      // 检查必要的 API Key
+      if (!config.llmApiKey || !config.embeddingApiKey) {
+        setError("请先在设置中配置 LLM API Key 和 Embedding API Key");
+        setState("error");
+        return;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setState("error");
-    }
-  };
 
-  const handleReset = () => {
+      setState("searching");
+      setProgress(null);
+      setResults([]);
+      setError(null);
+
+      try {
+        const result = await runPipeline(url, config, 10, setProgress);
+        setResults(result.results);
+        setTargetName(result.repo.full_name);
+        setLastUrl(url);
+        setState(result.results.length > 0 ? "results" : "error");
+
+        if (result.results.length === 0) {
+          setError("未找到相似仓库，请检查网络或 API 配置");
+        } else {
+          // 持久化搜索结果
+          await setSearchState({
+            results: result.results,
+            targetName: result.repo.full_name,
+            lastUrl: url,
+            timestamp: Date.now(),
+          });
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+        setState("error");
+      }
+    },
+    [config],
+  );
+
+  const handleReset = useCallback(async () => {
     setState("idle");
     setProgress(null);
     setResults([]);
     setError(null);
-  };
+    await clearSearchState();
+  }, []);
 
   return (
     <div className="w-[420px] min-h-[300px] max-h-[600px] bg-background text-foreground flex flex-col">
@@ -83,6 +111,7 @@ export default function App() {
         <SearchBar
           onSearch={handleSearch}
           disabled={state === "searching"}
+          initialUrl={state === "results" ? lastUrl : undefined}
         />
       </div>
 
@@ -106,9 +135,7 @@ export default function App() {
         )}
 
         {/* Searching state */}
-        {state === "searching" && (
-          <ProgressIndicator progress={progress} />
-        )}
+        {state === "searching" && <ProgressIndicator progress={progress} />}
 
         {/* Results state */}
         {state === "results" && (

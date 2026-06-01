@@ -1,11 +1,12 @@
 /**
- * Background Service Worker — CORS 代理 + OpenAI SDK
+ * Background Service Worker — CORS 代理 + Vercel AI SDK
  *
  * 浏览器扩展中，Popup 直接调用外部 API 会受 CORS 限制。
- * Background Service Worker 不受此限制，使用 OpenAI SDK 处理所有 LLM/Embedding 请求。
+ * Background Service Worker 不受此限制，使用 Vercel AI SDK 处理所有 LLM/Embedding 请求。
  */
 
-import OpenAI from "openai";
+import { createOpenAI } from "@ai-sdk/openai";
+import { generateText, embed } from "ai";
 
 export default defineBackground(() => {
   console.log("GitHub Repo Radar background loaded");
@@ -36,7 +37,7 @@ async function handleMessage(message: MessagePayload): Promise<unknown> {
   }
 }
 
-// ─── GitHub API（仍用 fetch，因为不是 OpenAI 兼容格式）──────────────────────
+// ─── GitHub API（fetch，非 OpenAI 兼容格式）─────────────────────────────────
 
 async function handleGitHubFetch(
   payload: Record<string, unknown>,
@@ -70,7 +71,7 @@ async function handleGitHubFetch(
   return { data };
 }
 
-// ─── LLM Chat（OpenAI SDK）─────────────────────────────────────────────────
+// ─── LLM Chat（Vercel AI SDK）──────────────────────────────────────────────
 
 async function handleLlmChat(
   payload: Record<string, unknown>,
@@ -83,18 +84,18 @@ async function handleLlmChat(
     temperature?: number;
   };
 
-  const client = new OpenAI({ baseURL: apiBase, apiKey });
+  const provider = createOpenAI({ baseURL: apiBase, apiKey });
 
-  const completion = await client.chat.completions.create({
-    model,
+  const result = await generateText({
+    model: provider.chat(model),
     messages,
     temperature: temperature ?? 0.1,
   });
 
-  return { data: completion };
+  return { data: { text: result.text } };
 }
 
-// ─── Embedding（OpenAI SDK）────────────────────────────────────────────────
+// ─── Embedding（Vercel AI SDK）─────────────────────────────────────────────
 
 async function handleGetEmbedding(
   payload: Record<string, unknown>,
@@ -106,12 +107,12 @@ async function handleGetEmbedding(
     input: string;
   };
 
-  const client = new OpenAI({ baseURL: apiBase, apiKey });
+  const provider = createOpenAI({ baseURL: apiBase, apiKey });
 
-  const embedding = await client.embeddings.create({
-    model,
-    input,
+  const result = await embed({
+    model: provider.textEmbedding(model),
+    value: input,
   });
 
-  return { data: embedding };
+  return { data: { embedding: result.embedding } };
 }
