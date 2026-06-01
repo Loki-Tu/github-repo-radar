@@ -1,22 +1,21 @@
 /**
- * Background Service Worker — CORS 代理
+ * Background Service Worker — CORS 代理 + OpenAI SDK
  *
- * 浏览器扩展中，Content Script 和 Popup 直接调用外部 API 会受 CORS 限制。
- * Background Service Worker 不受此限制，因此作为请求代理。
+ * 浏览器扩展中，Popup 直接调用外部 API 会受 CORS 限制。
+ * Background Service Worker 不受此限制，使用 OpenAI SDK 处理所有 LLM/Embedding 请求。
  */
+
+import OpenAI from "openai";
 
 export default defineBackground(() => {
   console.log("GitHub Repo Radar background loaded");
 
-  chrome.runtime.onMessage.addListener(
-    (message, _sender, sendResponse) => {
-      handleMessage(message)
-        .then(sendResponse)
-        .catch((err) => sendResponse({ error: String(err) }));
-      // 返回 true 以保持 sendResponse 通道开放（异步响应）
-      return true;
-    },
-  );
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    handleMessage(message)
+      .then(sendResponse)
+      .catch((err) => sendResponse({ error: String(err) }));
+    return true; // 保持异步通道开放
+  });
 });
 
 interface MessagePayload {
@@ -37,7 +36,8 @@ async function handleMessage(message: MessagePayload): Promise<unknown> {
   }
 }
 
-/** 代理 GitHub API 请求 */
+// ─── GitHub API（仍用 fetch，因为不是 OpenAI 兼容格式）──────────────────────
+
 async function handleGitHubFetch(
   payload: Record<string, unknown>,
 ): Promise<unknown> {
@@ -70,7 +70,8 @@ async function handleGitHubFetch(
   return { data };
 }
 
-/** 代理 LLM Chat API 请求 */
+// ─── LLM Chat（OpenAI SDK）─────────────────────────────────────────────────
+
 async function handleLlmChat(
   payload: Record<string, unknown>,
 ): Promise<unknown> {
@@ -78,32 +79,23 @@ async function handleLlmChat(
     apiBase: string;
     apiKey: string;
     model: string;
-    messages: { role: string; content: string }[];
+    messages: { role: "system" | "user" | "assistant"; content: string }[];
     temperature?: number;
   };
 
-  const resp = await fetch(`${apiBase}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: temperature ?? 0.1,
-    }),
+  const client = new OpenAI({ baseURL: apiBase, apiKey });
+
+  const completion = await client.chat.completions.create({
+    model,
+    messages,
+    temperature: temperature ?? 0.1,
   });
 
-  if (!resp.ok) {
-    const text = await resp.text();
-    return { error: `LLM API ${resp.status}: ${text}` };
-  }
-  const data = await resp.json();
-  return { data };
+  return { data: completion };
 }
 
-/** 代理 Embedding API 请求 */
+// ─── Embedding（OpenAI SDK）────────────────────────────────────────────────
+
 async function handleGetEmbedding(
   payload: Record<string, unknown>,
 ): Promise<unknown> {
@@ -114,22 +106,12 @@ async function handleGetEmbedding(
     input: string;
   };
 
-  const resp = await fetch(`${apiBase}/embeddings`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      input: [input],
-    }),
+  const client = new OpenAI({ baseURL: apiBase, apiKey });
+
+  const embedding = await client.embeddings.create({
+    model,
+    input,
   });
 
-  if (!resp.ok) {
-    const text = await resp.text();
-    return { error: `Embedding API ${resp.status}: ${text}` };
-  }
-  const data = await resp.json();
-  return { data };
+  return { data: embedding };
 }
