@@ -123,8 +123,21 @@ export default function App({ lang, onLangChange }: AppProps) {
           />
         </Section>
 
-        {/* ── Embedding 平台 ── */}
-        <Section title={t.embeddingPlatform} icon="🧮">
+        {/* ── Embedding 平台（可选） ── */}
+        <Section
+          title={t.embeddingPlatform}
+          icon="🧮"
+          badge={<span className="optional-badge">{t.embeddingOptional}</span>}
+          tooltip={
+            <div className="guide-tooltip">
+              <p className="guide-tooltip-title">{t.embeddingGuideTitle}</p>
+              <p>{t.embeddingGuideP1}</p>
+              <p style={{ marginTop: 8 }}>{t.embeddingGuideP2}</p>
+              <p>{t.embeddingGuideP3}</p>
+            </div>
+          }
+          hint={t.embeddingHint}
+        >
           <PlatformSelector
             platforms={EMBEDDING_PLATFORMS}
             selectedId={config.embeddingPlatformId}
@@ -255,6 +268,17 @@ export default function App({ lang, onLangChange }: AppProps) {
         .guide-link:hover {
           opacity: 0.8;
         }
+        .optional-badge {
+          display: inline-block;
+          font-size: 10px;
+          font-weight: 500;
+          padding: 1px 6px;
+          border-radius: 4px;
+          background: hsl(var(--muted));
+          color: hsl(var(--muted-foreground));
+          vertical-align: middle;
+          margin-left: 4px;
+        }
       `}</style>
     </div>
   );
@@ -265,17 +289,29 @@ export default function App({ lang, onLangChange }: AppProps) {
 function Section({
   title,
   icon,
+  badge,
+  tooltip,
+  hint,
   children,
 }: {
   title: string;
   icon: string;
+  badge?: React.ReactNode;
+  tooltip?: React.ReactNode;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+      <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
         <span>{icon}</span> {title}
+        {badge}
+        {tooltip && <HelpTooltip>{tooltip}</HelpTooltip>}
       </h2>
+      {hint && (
+        <p className="text-xs text-muted-foreground/70 mb-4 pl-7">{hint}</p>
+      )}
+      {!hint && <div className="mb-4" />}
       <div className="space-y-4 pl-1">{children}</div>
     </div>
   );

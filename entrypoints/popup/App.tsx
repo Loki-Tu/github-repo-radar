@@ -63,7 +63,7 @@ export default function App({ lang, onLangChange }: AppProps) {
     async (url: string) => {
       if (!config) return;
 
-      if (!config.llmApiKey || !config.embeddingApiKey) {
+      if (!config.llmApiKey) {
         setError(t.errorNoKeys);
         setState("error");
         return;
@@ -111,7 +111,7 @@ export default function App({ lang, onLangChange }: AppProps) {
     chrome.runtime.openOptionsPage();
   };
 
-  const hasKeys = config?.llmApiKey && config?.embeddingApiKey;
+  const hasKeys = !!config?.llmApiKey;
 
   return (
     <div className="w-[420px] min-h-[300px] max-h-[600px] bg-background text-foreground flex flex-col">
