@@ -15,7 +15,6 @@ import { useI18n, type Lang } from "../../utils/i18n";
 import SearchBar from "./components/SearchBar";
 import ProgressIndicator from "./components/ProgressIndicator";
 import ResultList from "./components/ResultList";
-import SettingsPanel from "./components/SettingsPanel";
 
 type AppState = "idle" | "searching" | "results" | "error";
 
@@ -36,7 +35,9 @@ export default function App({ lang, onLangChange }: AppProps) {
 
   // 加载配置 + 恢复上次搜索状态
   useEffect(() => {
-    getApiConfig().then(setConfig);
+    getApiConfig().then((c) => {
+      setConfig(c);
+    });
     getSearchState().then((saved) => {
       if (saved && saved.results.length > 0) {
         setResults(saved.results);
@@ -45,6 +46,17 @@ export default function App({ lang, onLangChange }: AppProps) {
         setState("results");
       }
     });
+  }, []);
+
+  // 从 storage 变化中实时刷新配置（用户在 options 页保存后）
+  useEffect(() => {
+    const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+      if (area === "local" && changes.api_config) {
+        setConfig(changes.api_config.newValue as ApiConfig);
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
   const handleSearch = useCallback(
@@ -95,6 +107,12 @@ export default function App({ lang, onLangChange }: AppProps) {
     await clearSearchState();
   }, []);
 
+  const openSettings = () => {
+    chrome.runtime.openOptionsPage();
+  };
+
+  const hasKeys = config?.llmApiKey && config?.embeddingApiKey;
+
   return (
     <div className="w-[420px] min-h-[300px] max-h-[600px] bg-background text-foreground flex flex-col">
       {/* Header */}
@@ -112,7 +130,6 @@ export default function App({ lang, onLangChange }: AppProps) {
                 {t.backToSearch}
               </button>
             )}
-            {/* 语言切换 */}
             <button
               onClick={() => onLangChange(lang === "en" ? "zh-CN" : "en")}
               className="text-xs px-2 py-0.5 rounded border border-border
@@ -133,31 +150,54 @@ export default function App({ lang, onLangChange }: AppProps) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-3">
-        {/* Idle state */}
-        {state === "idle" && !config?.llmApiKey && (
-          <div className="text-center py-8">
+        {/* Idle — 未配置 */}
+        {state === "idle" && !hasKeys && (
+          <div className="text-center py-8 space-y-3">
             <p className="text-sm text-muted-foreground">{t.idleNoKey}</p>
+            <button
+              onClick={openSettings}
+              className="text-sm px-4 py-2 rounded-md bg-primary text-primary-foreground
+                         hover:opacity-90 transition-opacity"
+            >
+              ⚙️ {t.settings}
+            </button>
           </div>
         )}
 
-        {state === "idle" && config?.llmApiKey && (
-          <div className="text-center py-8">
+        {/* Idle — 已配置 */}
+        {state === "idle" && hasKeys && (
+          <div className="text-center py-8 space-y-3">
             <p className="text-sm text-muted-foreground">{t.idleReady}</p>
+            <button
+              onClick={openSettings}
+              className="text-xs text-muted-foreground hover:text-foreground underline"
+            >
+              ⚙️ {t.settings}
+            </button>
           </div>
         )}
 
-        {/* Searching state */}
+        {/* Searching */}
         {state === "searching" && <ProgressIndicator progress={progress} />}
 
-        {/* Results state */}
+        {/* Results */}
         {state === "results" && (
           <ResultList results={results} targetName={targetName} />
         )}
 
-        {/* Error state */}
+        {/* Error */}
         {state === "error" && (
-          <div className="text-center py-6">
-            <p className="text-sm text-red-500 mb-2">❌ {error}</p>
+          <div className="text-center py-6 space-y-2">
+            <p className="text-sm text-red-500">❌ {error}</p>
+            {error?.includes("API Key") && (
+              <button
+                onClick={openSettings}
+                className="block mx-auto text-sm px-4 py-2 rounded-md bg-primary text-primary-foreground
+                           hover:opacity-90 transition-opacity"
+              >
+                ⚙️ {t.settings}
+              </button>
+            )}
             <button
               onClick={handleReset}
               className="text-xs text-muted-foreground hover:text-foreground underline"
@@ -168,9 +208,15 @@ export default function App({ lang, onLangChange }: AppProps) {
         )}
       </div>
 
-      {/* Settings */}
-      <div className="px-4 pb-4">
-        <SettingsPanel onConfigSaved={setConfig} />
+      {/* Footer */}
+      <div className="px-4 py-2 border-t border-border">
+        <button
+          onClick={openSettings}
+          className="w-full text-xs text-muted-foreground hover:text-foreground
+                     transition-colors py-1"
+        >
+          ⚙️ {t.settings}
+        </button>
       </div>
     </div>
   );
