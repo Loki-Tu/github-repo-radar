@@ -80,7 +80,19 @@ export default function App({ lang, onLangChange }: AppProps) {
 
         {/* ── GitHub Token ── */}
         <Section title="GitHub" icon="🔑">
-          <FieldGroup label={t.githubToken} hint={t.githubTokenHint}>
+          <FieldGroup
+            label={t.githubToken}
+            hint={t.githubTokenHint}
+            tooltip={
+              <div className="guide-tooltip">
+                <p className="guide-tooltip-title">{t.githubTokenGuideTitle}</p>
+                <p>{t.githubTokenGuideStep1} <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="guide-link">{t.githubTokenGuideStep1Link}</a></p>
+                <p>{t.githubTokenGuideStep2}</p>
+                <p>{t.githubTokenGuideStep3}</p>
+                <p>{t.githubTokenGuideStep4}</p>
+              </div>
+            }
+          >
             <input
               type="password"
               value={config.githubToken}
@@ -175,6 +187,73 @@ export default function App({ lang, onLangChange }: AppProps) {
         .setting-select:focus {
           outline: none;
           box-shadow: 0 0 0 2px hsl(var(--ring));
+        }
+
+        /* Help Tooltip */
+        .help-tooltip-trigger {
+          position: relative;
+          display: inline-flex;
+          cursor: help;
+        }
+        .help-tooltip-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: hsl(var(--muted));
+          color: hsl(var(--muted-foreground));
+          font-size: 10px;
+          font-weight: 600;
+          line-height: 1;
+          flex-shrink: 0;
+        }
+        .help-tooltip-content {
+          display: none;
+          position: absolute;
+          bottom: calc(100% + 8px);
+          left: 50%;
+          transform: translateX(-50%);
+          width: 280px;
+          padding: 12px 14px;
+          border-radius: 8px;
+          background: hsl(var(--popover, 0 0% 100%));
+          color: hsl(var(--popover-foreground, 0 0% 3.9%));
+          border: 1px solid hsl(var(--border));
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          font-size: 12px;
+          line-height: 1.6;
+          z-index: 50;
+          white-space: normal;
+        }
+        .help-tooltip-content::after {
+          content: "";
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 6px solid transparent;
+          border-top-color: hsl(var(--popover, 0 0% 100%));
+        }
+        .help-tooltip-trigger:hover .help-tooltip-content {
+          display: block;
+        }
+        .guide-tooltip-title {
+          font-weight: 600;
+          margin-bottom: 6px;
+          font-size: 13px;
+        }
+        .guide-tooltip p {
+          margin: 4px 0;
+        }
+        .guide-link {
+          color: hsl(210 100% 50%);
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+        .guide-link:hover {
+          opacity: 0.8;
         }
       `}</style>
     </div>
@@ -307,21 +386,33 @@ function PlatformFields({
 function FieldGroup({
   label,
   hint,
+  tooltip,
   children,
 }: {
   label: string;
   hint?: string;
+  tooltip?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="text-sm text-muted-foreground block mb-1.5">
+      <label className="text-sm text-muted-foreground block mb-1.5 flex items-center gap-1.5">
         {label}
+        {tooltip && <HelpTooltip>{tooltip}</HelpTooltip>}
       </label>
       {hint && (
         <p className="text-xs text-muted-foreground/70 mb-1.5">{hint}</p>
       )}
       {children}
     </div>
+  );
+}
+
+function HelpTooltip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="help-tooltip-trigger">
+      <span className="help-tooltip-icon">?</span>
+      <span className="help-tooltip-content">{children}</span>
+    </span>
   );
 }
