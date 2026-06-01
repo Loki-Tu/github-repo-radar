@@ -6,6 +6,14 @@
 
 输入一个 GitHub 仓库 URL，自动分析项目特征，通过多路召回 + 两阶段排序，找到最相似的开源项目。
 
+## 🔒 安全与隐私
+
+**本项目完全开源。** 所有代码透明可审计。
+
+- **所有数据存本地** — 搜索结果、特征缓存、设置项均存储在浏览器的 `chrome.storage.local` 中，不会发送到任何第三方服务器（你自己配置的 API 除外）。
+- **API Key 不会离开你的浏览器** — 密钥仅存储在本地，仅直接发送到你配置的 API 端点（OpenAI、Anthropic、SiliconFlow 等）。无遥测、无追踪、无中间人。
+- **无需注册账号** — 填入你自己的 API Key 即可使用。
+
 ## 工作原理
 
 ```
@@ -121,6 +129,10 @@ npm run dev:firefox    # Firefox 开发
 npm run build          # Chrome 生产构建
 npm run build:firefox  # Firefox 生产构建
 ```
+
+## 反馈
+
+遇到 Bug 或有建议？在 GitHub 上 [提交 Issue](https://github.com/your-username/repo-radar/issues)。
 
 ## License
 

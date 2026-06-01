@@ -12,6 +12,7 @@ import {
 } from "../../utils/lib/storage";
 import { runPipeline } from "../../utils/core/pipeline";
 import { useI18n, type Lang } from "../../utils/i18n";
+import { GITHUB_REPO_URL } from "../../utils/config";
 import SearchBar from "./components/SearchBar";
 import ProgressIndicator from "./components/ProgressIndicator";
 import ResultList from "./components/ResultList";
@@ -202,18 +203,31 @@ export default function App({ lang, onLangChange }: AppProps) {
         )}
       </div>
 
-      {/* Footer — 已配置后可二次设置 */}
-      {hasKeys && (
-        <div className="px-4 py-2 border-t border-border">
-          <button
-            onClick={openSettings}
-            className="w-full text-xs text-muted-foreground hover:text-foreground
-                       transition-colors py-1"
+      {/* Footer */}
+      <div className="px-4 py-2 border-t border-border space-y-1">
+        {/* 安全提示 */}
+        <p className="text-[10px] text-muted-foreground/60 text-center">
+          {t.openSourceNotice}
+        </p>
+        <div className="flex items-center justify-between">
+          {hasKeys && (
+            <button
+              onClick={openSettings}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ⚙️ {t.settings}
+            </button>
+          )}
+          <a
+            href={`${GITHUB_REPO_URL}/issues`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto"
           >
-            ⚙️ {t.settings}
-          </button>
+            💬 {t.feedback}
+          </a>
         </div>
-      )}
+      </div>
     </div>
   );
 }

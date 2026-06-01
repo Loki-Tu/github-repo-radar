@@ -66,6 +66,10 @@ const en: Record<string, string> = {
   errorNoKeys: "Please configure LLM API Key and Embedding API Key in Settings first",
   errorNoResults: "No similar repos found. Check your network or API config",
   retry: "Retry",
+
+  // Footer
+  feedback: "Feedback & Issues",
+  openSourceNotice: "Open source · All data stored locally · Your API keys never leave your browser",
 } as const;
 
 export type Locale = Record<string, string>;

@@ -66,6 +66,10 @@ const zhCN: Record<string, string> = {
   errorNoKeys: "请先在设置中配置 LLM API Key 和 Embedding API Key",
   errorNoResults: "未找到相似仓库，请检查网络或 API 配置",
   retry: "重试",
+
+  // Footer
+  feedback: "反馈与建议",
+  openSourceNotice: "开源项目 · 数据仅存本地 · API Key 不会离开你的浏览器",
 } as const;
 
 export default zhCN;

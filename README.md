@@ -6,6 +6,14 @@ English | [简体中文](./README-zh.md)
 
 Enter a GitHub repo URL, and it automatically analyzes project features, runs parallel multi-path recall + two-phase ranking, to find the most similar open-source projects.
 
+## 🔒 Security & Privacy
+
+**This project is fully open source.** All code is transparent and auditable.
+
+- **All data stays local** — search results, cached features, and settings are stored in your browser's `chrome.storage.local`. Nothing is sent to any third-party server except the APIs you configure yourself.
+- **Your API keys never leave your browser** — they are stored locally and only sent directly to the API endpoints you configure (OpenAI, Anthropic, SiliconFlow, etc.). No telemetry, no tracking, no middleman.
+- **No accounts required** — just fill in your own API keys and start using.
+
 ## How It Works
 
 ```
@@ -121,6 +129,10 @@ npm run dev:firefox    # Firefox dev
 npm run build          # Chrome production
 npm run build:firefox  # Firefox production
 ```
+
+## Feedback
+
+Found a bug or have a suggestion? [Open an issue](https://github.com/your-username/repo-radar/issues) on GitHub.
 
 ## License
 

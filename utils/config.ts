@@ -2,6 +2,9 @@
  * 默认配置常量
  */
 
+/** 项目开源地址 — 发布时替换为最终 GitHub 仓库地址 */
+export const GITHUB_REPO_URL = "https://github.com/your-username/repo-radar";
+
 export const DEFAULT_CONFIG = {
   llmModel: "mimo-v2.5-pro",
   llmApiBase: "https://token-plan-cn.xiaomimimo.com/v1",
