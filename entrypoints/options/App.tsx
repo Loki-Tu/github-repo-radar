@@ -8,6 +8,10 @@ import {
   findPlatform,
   type PlatformPreset,
 } from "../../utils/platforms";
+import {
+  isAnalyticsOptedOut,
+  setAnalyticsOptOut,
+} from "../../utils/analytics";
 
 interface AppProps {
   lang: Lang;
@@ -18,9 +22,11 @@ export default function App({ lang, onLangChange }: AppProps) {
   const t = useI18n();
   const [config, setConfig] = useState<ApiConfig | null>(null);
   const [saved, setSaved] = useState(false);
+  const [analyticsOptedOut, setAnalyticsOptedOutState] = useState(false);
 
   useEffect(() => {
     getApiConfig().then(setConfig);
+    isAnalyticsOptedOut().then(setAnalyticsOptedOutState);
   }, []);
 
   const handleSave = async () => {
@@ -171,6 +177,24 @@ export default function App({ lang, onLangChange }: AppProps) {
             </span>
           )}
         </div>
+
+        {/* ── 使用统计 ── */}
+        <Section title={t.analyticsTitle} icon="📊">
+          <p className="text-sm text-muted-foreground mb-3">{t.analyticsDesc}</p>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={analyticsOptedOut}
+              onChange={async (e) => {
+                const checked = e.target.checked;
+                setAnalyticsOptedOutState(checked);
+                await setAnalyticsOptOut(checked);
+              }}
+              className="w-4 h-4 rounded border-input accent-primary"
+            />
+            <span className="text-sm">{t.analyticsOptOut}</span>
+          </label>
+        </Section>
       </div>
 
       <style>{`

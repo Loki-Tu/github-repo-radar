@@ -16,6 +16,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.67",
     "ai": "^6.0.193",
+    "posthog-js": "^1.376.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "wxt": "^0.20.0"

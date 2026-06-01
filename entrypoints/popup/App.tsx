@@ -13,6 +13,12 @@ import {
 import { runPipeline } from "../../utils/core/pipeline";
 import { useI18n, type Lang } from "../../utils/i18n";
 import { GITHUB_REPO_URL } from "../../utils/config";
+import {
+  trackPopupOpened,
+  trackSearchStarted,
+  trackSearchCompleted,
+  trackSettingsOpened,
+} from "../../utils/analytics";
 import SearchBar from "./components/SearchBar";
 import ProgressIndicator from "./components/ProgressIndicator";
 import ResultList from "./components/ResultList";
@@ -38,6 +44,8 @@ export default function App({ lang, onLangChange }: AppProps) {
   useEffect(() => {
     getApiConfig().then((c) => {
       setConfig(c);
+      // 埋点：Popup 打开
+      trackPopupOpened(!!c.llmApiKey, lang);
     });
     getSearchState().then((saved) => {
       if (saved && saved.results.length > 0) {
@@ -47,7 +55,7 @@ export default function App({ lang, onLangChange }: AppProps) {
         setState("results");
       }
     });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 从 storage 变化中实时刷新配置（用户在 options 页保存后）
   useEffect(() => {
@@ -75,12 +83,27 @@ export default function App({ lang, onLangChange }: AppProps) {
       setResults([]);
       setError(null);
 
+      // 埋点：搜索开始
+      const searchStartTime = Date.now();
+      trackSearchStarted({
+        llm_platform: config.llmPlatformId,
+        has_embedding: !!config.embeddingApiKey,
+        has_github_token: !!config.githubToken,
+      });
+
       try {
         const result = await runPipeline(url, config, 10, setProgress);
         setResults(result.results);
         setTargetName(result.repo.full_name);
         setLastUrl(url);
         setState(result.results.length > 0 ? "results" : "error");
+
+        // 埋点：搜索完成
+        trackSearchCompleted({
+          result_count: result.results.length,
+          used_embedding: result.usedEmbedding,
+          duration_ms: Date.now() - searchStartTime,
+        });
 
         if (result.results.length === 0) {
           setError(t.errorNoResults);
@@ -109,6 +132,7 @@ export default function App({ lang, onLangChange }: AppProps) {
   }, []);
 
   const openSettings = () => {
+    trackSettingsOpened();
     chrome.runtime.openOptionsPage();
   };
 

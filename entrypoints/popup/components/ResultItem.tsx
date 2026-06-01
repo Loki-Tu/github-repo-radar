@@ -1,5 +1,6 @@
 import type { RankedResult } from "../../../utils/core/types";
 import { useI18n } from "../../../utils/i18n";
+import { trackResultClicked } from "../../../utils/analytics";
 
 interface ResultItemProps {
   result: RankedResult;
@@ -17,11 +18,16 @@ export default function ResultItem({ result, rank }: ResultItemProps) {
     return String(n);
   };
 
+  const handleClick = () => {
+    trackResultClicked({ rank, score });
+  };
+
   return (
     <a
       href={repo.html_url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={handleClick}
       className="block p-3 rounded-lg border border-border hover:border-ring
                  hover:bg-accent/50 transition-all group"
     >

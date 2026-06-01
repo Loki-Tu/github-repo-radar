@@ -71,6 +71,11 @@ const zhCN: Record<string, string> = {
   feedback: "反馈与建议",
   openSource: "开源项目",
   privacyNotice: "数据仅存本地 · API Key 不会离开你的浏览器",
+
+  // Analytics
+  analyticsTitle: "使用统计",
+  analyticsDesc: "收集匿名使用数据（如搜索次数、功能使用情况）以改进扩展。不收集个人信息、API Key 或搜索内容。",
+  analyticsOptOut: "关闭匿名使用统计",
 } as const;
 
 export default zhCN;

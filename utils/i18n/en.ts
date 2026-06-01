@@ -71,6 +71,11 @@ const en: Record<string, string> = {
   feedback: "Feedback & Issues",
   openSource: "Open source",
   privacyNotice: "All data stored locally · Your API keys never leave your browser",
+
+  // Analytics
+  analyticsTitle: "Usage Analytics",
+  analyticsDesc: "Helps improve the extension by collecting anonymous usage data (e.g. search count, features used). No personal data, API keys, or search content is collected.",
+  analyticsOptOut: "Disable anonymous analytics",
 } as const;
 
 export type Locale = Record<string, string>;
