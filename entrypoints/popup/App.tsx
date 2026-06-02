@@ -47,13 +47,20 @@ export default function App({ lang, onLangChange }: AppProps) {
       // 埋点：Popup 打开
       trackPopupOpened(!!c.llmApiKey, lang);
     });
-    getSearchState().then((saved) => {
-      if (saved && saved.results.length > 0) {
-        setResults(saved.results);
-        setTargetName(saved.targetName);
-        setLastUrl(saved.lastUrl);
-        setState("results");
-      }
+    // 获取当前页面的 URL
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const currentUrl = tabs[0]?.url || "";
+
+      getSearchState().then((saved) => {
+        // 只有当当前页面的 URL 与上次搜索的 URL 匹配时，才恢复搜索结果
+        if (saved && saved.results.length > 0 && saved.lastUrl === currentUrl) {
+          setResults(saved.results);
+          setTargetName(saved.targetName);
+          setLastUrl(saved.lastUrl);
+          setState("results");
+        }
+        // 否则显示初始的搜索界面
+      });
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

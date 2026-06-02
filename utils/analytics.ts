@@ -6,30 +6,57 @@
  * - 事件属性尽量精简，不收集敏感信息
  */
 
-import posthog from "posthog-js";
-
 const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
 const POSTHOG_HOST = (import.meta.env.VITE_POSTHOG_HOST as string) || "https://us.i.posthog.com";
 
 const ANALYTICS_OPT_OUT_KEY = "analytics_opt_out";
-let initialized = false;
 
-/** 初始化 PostHog（仅调用一次） */
-function ensureInit(): void {
-  if (initialized) return;
-  initialized = true;
+/** 生成随机用户 ID */
+function generateUserId(): string {
+  return "user-" + Math.random().toString(36).substring(2, 15);
+}
 
+/** 获取或创建用户 ID */
+function getUserId(): string {
+  const storageKey = "analytics_user_id";
+  let userId = localStorage.getItem(storageKey);
+  if (!userId) {
+    userId = generateUserId();
+    localStorage.setItem(storageKey, userId);
+  }
+  return userId;
+}
+
+/** 直接发送事件到 PostHog（不依赖 posthog-js 库） */
+async function sendEvent(eventName: string, properties: Record<string, any> = {}): Promise<void> {
   if (!POSTHOG_KEY) return;
 
-  posthog.init(POSTHOG_KEY, {
-    api_host: POSTHOG_HOST,
-    capture_pageview: false,
-    capture_pageleave: false,
-    // 浏览器扩展无 cookies，用 localStorage
-    persistence: "localStorage",
-    // 不捕获 autocapture（点击、输入等），只手动采集
-    autocapture: false,
-  });
+  const userId = getUserId();
+  const event = {
+    api_key: POSTHOG_KEY,
+    event: eventName,
+    properties: {
+      distinct_id: userId,
+      ...properties,
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    console.log("[Analytics] Sending event:", eventName, properties);
+    const response = await fetch(`${POSTHOG_HOST}/capture/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(event),
+    });
+
+    const data = await response.json();
+    console.log("[Analytics] Event sent:", eventName, data);
+  } catch (error) {
+    console.error("[Analytics] Failed to send event:", eventName, error);
+  }
 }
 
 /** 检查用户是否已关闭埋点 */
@@ -48,9 +75,7 @@ export async function setAnalyticsOptOut(optedOut: boolean): Promise<void> {
 /** Popup 打开 */
 export async function trackPopupOpened(hasConfig: boolean, lang: string): Promise<void> {
   if (await isAnalyticsOptedOut()) return;
-  ensureInit();
-  if (!POSTHOG_KEY) return;
-  posthog.capture("extension_opened", { has_config: hasConfig, lang });
+  await sendEvent("extension_opened", { has_config: hasConfig, lang });
 }
 
 /** 搜索开始 */
@@ -60,9 +85,7 @@ export async function trackSearchStarted(params: {
   has_github_token: boolean;
 }): Promise<void> {
   if (await isAnalyticsOptedOut()) return;
-  ensureInit();
-  if (!POSTHOG_KEY) return;
-  posthog.capture("search_started", params);
+  await sendEvent("search_started", params);
 }
 
 /** 搜索完成 */
@@ -72,9 +95,7 @@ export async function trackSearchCompleted(params: {
   duration_ms: number;
 }): Promise<void> {
   if (await isAnalyticsOptedOut()) return;
-  ensureInit();
-  if (!POSTHOG_KEY) return;
-  posthog.capture("search_completed", params);
+  await sendEvent("search_completed", params);
 }
 
 /** 点击搜索结果 */
@@ -83,15 +104,11 @@ export async function trackResultClicked(params: {
   score: number;
 }): Promise<void> {
   if (await isAnalyticsOptedOut()) return;
-  ensureInit();
-  if (!POSTHOG_KEY) return;
-  posthog.capture("result_clicked", params);
+  await sendEvent("result_clicked", params);
 }
 
 /** 打开设置页 */
 export async function trackSettingsOpened(): Promise<void> {
   if (await isAnalyticsOptedOut()) return;
-  ensureInit();
-  if (!POSTHOG_KEY) return;
-  posthog.capture("settings_opened", {});
+  await sendEvent("settings_opened", {});
 }

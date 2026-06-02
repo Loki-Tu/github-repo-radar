@@ -68,12 +68,30 @@ npm install
 npm run dev
 ```
 
-在 Chrome 中加载 `.output/chrome-mv3/` 为扩展：
+在 Chrome 中加载 `.output/chrome-mv3-dev/` 为扩展：
 
 1. 打开 `chrome://extensions/`
 2. 开启「开发者模式」
 3. 点击「加载已解压的扩展程序」
-4. 选择 `.output/chrome-mv3/` 目录
+4. 选择 `.output/chrome-mv3-dev/` 目录
+
+#### 开发配置（可选）
+
+为了方便开发，你可以创建 `dev.config.local.ts` 文件来预填 API key。此文件已被 gitignore，**仅在开发模式下生效**：
+
+```typescript
+// dev.config.local.ts
+export default {
+  llmPlatformId: "openai",
+  llmApiKey: "sk-xxx",
+  llmModel: "gpt-4o-mini",
+  embeddingPlatformId: "siliconflow",
+  embeddingApiKey: "sk-xxx",
+  embeddingModel: "BAAI/bge-m3",
+};
+```
+
+运行 `npm run dev` 时，这些值会自动保存到扩展的设置页面。你仍然可以在 UI 中修改它们。生产构建（`npm run build`）时会忽略此文件，用户必须手动配置 key。
 
 ### 4. 构建
 

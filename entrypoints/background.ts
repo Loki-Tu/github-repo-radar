@@ -6,6 +6,14 @@
  */
 
 import { createOpenAI } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+import { xai } from "@ai-sdk/xai";
+import { deepseek } from "@ai-sdk/deepseek";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { azure } from "@ai-sdk/azure";
+import { bedrock } from "@ai-sdk/amazon-bedrock";
+import { ollama } from "ollama-ai-provider";
 import { generateText, embed } from "ai";
 
 export default defineBackground(() => {
@@ -73,10 +81,40 @@ async function handleGitHubFetch(
 
 // ─── LLM Chat（Vercel AI SDK）──────────────────────────────────────────────
 
+/** 根据平台 ID 获取 LLM provider */
+function getLlmProvider(platformId: string, apiBase: string, apiKey: string) {
+  switch (platformId) {
+    case "openai":
+      return createOpenAI({ apiKey });
+    case "anthropic":
+      return anthropic;
+    case "google":
+      return google;
+    case "xai":
+      return xai;
+    case "deepseek":
+      return deepseek;
+    case "openrouter":
+      return createOpenRouter({ apiKey });
+    case "azure":
+      return azure;
+    case "bedrock":
+      return bedrock;
+    case "ollama":
+      return ollama;
+    case "openai-compatible":
+      return createOpenAI({ baseURL: apiBase, apiKey });
+    default:
+      // 默认使用 OpenAI 兼容模式
+      return createOpenAI({ baseURL: apiBase, apiKey });
+  }
+}
+
 async function handleLlmChat(
   payload: Record<string, unknown>,
 ): Promise<unknown> {
-  const { apiBase, apiKey, model, messages, temperature } = payload as {
+  const { platformId, apiBase, apiKey, model, messages, temperature } = payload as {
+    platformId: string;
     apiBase: string;
     apiKey: string;
     model: string;
@@ -84,7 +122,7 @@ async function handleLlmChat(
     temperature?: number;
   };
 
-  const provider = createOpenAI({ baseURL: apiBase, apiKey });
+  const provider = getLlmProvider(platformId, apiBase, apiKey);
 
   const result = await generateText({
     model: provider.chat(model),
@@ -97,17 +135,41 @@ async function handleLlmChat(
 
 // ─── Embedding（Vercel AI SDK）─────────────────────────────────────────────
 
+/** 根据平台 ID 获取 Embedding provider */
+function getEmbeddingProvider(platformId: string, apiBase: string, apiKey: string) {
+  switch (platformId) {
+    case "openai":
+      return createOpenAI({ apiKey });
+    case "google":
+      return google;
+    case "azure":
+      return azure;
+    case "bedrock":
+      return bedrock;
+    case "openrouter":
+      return createOpenRouter({ apiKey });
+    case "ollama":
+      return ollama;
+    case "openai-compatible":
+      return createOpenAI({ baseURL: apiBase, apiKey });
+    default:
+      // 默认使用 OpenAI 兼容模式
+      return createOpenAI({ baseURL: apiBase, apiKey });
+  }
+}
+
 async function handleGetEmbedding(
   payload: Record<string, unknown>,
 ): Promise<unknown> {
-  const { apiBase, apiKey, model, input } = payload as {
+  const { platformId, apiBase, apiKey, model, input } = payload as {
+    platformId: string;
     apiBase: string;
     apiKey: string;
     model: string;
     input: string;
   };
 
-  const provider = createOpenAI({ baseURL: apiBase, apiKey });
+  const provider = getEmbeddingProvider(platformId, apiBase, apiKey);
 
   const result = await embed({
     model: provider.textEmbedding(model),

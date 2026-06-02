@@ -14,8 +14,16 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^4.0.111",
+    "@ai-sdk/anthropic": "^3.0.81",
+    "@ai-sdk/azure": "^3.0.68",
+    "@ai-sdk/deepseek": "^2.0.35",
+    "@ai-sdk/google": "^3.0.80",
     "@ai-sdk/openai": "^3.0.67",
+    "@ai-sdk/xai": "^3.0.93",
+    "@openrouter/ai-sdk-provider": "^2.9.0",
     "ai": "^6.0.193",
+    "ollama-ai-provider": "^1.2.0",
     "posthog-js": "^1.376.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

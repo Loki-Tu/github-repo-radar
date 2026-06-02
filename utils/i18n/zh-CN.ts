@@ -40,9 +40,14 @@ const zhCN: Record<string, string> = {
   // Platforms
   platformOpenai: "OpenAI",
   platformAnthropic: "Anthropic",
-  platformSiliconFlow: "SiliconFlow",
+  platformGoogle: "Google Gemini",
+  platformXai: "xAI Grok",
+  platformDeepseek: "DeepSeek",
+  platformOpenrouter: "OpenRouter",
+  platformAzure: "Azure OpenAI",
+  platformBedrock: "Amazon Bedrock",
+  platformOllama: "Ollama",
   platformOpenaiCompatible: "OpenAI 兼容",
-  platformAnthropicCompatible: "Anthropic 兼容",
 
   // Progress stages
   stageFetching: "获取仓库数据",

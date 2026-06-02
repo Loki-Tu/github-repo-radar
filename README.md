@@ -68,12 +68,30 @@ Supported LLM platforms: OpenAI, Anthropic, SiliconFlow, OpenAI Compatible (e.g.
 npm run dev
 ```
 
-Load `.output/chrome-mv3/` as an unpacked extension in Chrome:
+Load `.output/chrome-mv3-dev/` as an unpacked extension in Chrome:
 
 1. Open `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked"
-4. Select `.output/chrome-mv3/` directory
+4. Select `.output/chrome-mv3-dev/` directory
+
+#### Dev Config (Optional)
+
+For convenience during development, you can create a `dev.config.local.ts` file to pre-fill API keys. This file is gitignored and **only works in development mode**:
+
+```typescript
+// dev.config.local.ts
+export default {
+  llmPlatformId: "openai",
+  llmApiKey: "sk-xxx",
+  llmModel: "gpt-4o-mini",
+  embeddingPlatformId: "siliconflow",
+  embeddingApiKey: "sk-xxx",
+  embeddingModel: "BAAI/bge-m3",
+};
+```
+
+When you run `npm run dev`, these values will be automatically saved to the extension's settings page. You can still modify them in the UI. In production builds (`npm run build`), this file is ignored and users must configure keys manually.
 
 ### 4. Build
 

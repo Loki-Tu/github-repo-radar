@@ -57,6 +57,7 @@ export async function extractFeatures(
     .replace("{topics}", topics.length > 0 ? topics.join(", ") : "无");
 
   const resultText = await chatCompletion({
+    platformId: config.llmPlatformId,
     apiBase: config.llmApiBase,
     apiKey: config.llmApiKey,
     model: config.llmModel,

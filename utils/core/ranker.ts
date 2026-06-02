@@ -112,6 +112,7 @@ export async function getEmbeddingsBatch(
   for (let i = 0; i < texts.length; i++) {
     try {
       const emb = await getEmbedding({
+        platformId: config.embeddingPlatformId,
         apiBase: config.embeddingApiBase,
         apiKey: config.embeddingApiKey,
         model: config.embeddingModel,

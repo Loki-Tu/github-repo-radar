@@ -40,9 +40,14 @@ const en: Record<string, string> = {
   // Platforms
   platformOpenai: "OpenAI",
   platformAnthropic: "Anthropic",
-  platformSiliconFlow: "SiliconFlow",
+  platformGoogle: "Google Gemini",
+  platformXai: "xAI Grok",
+  platformDeepseek: "DeepSeek",
+  platformOpenrouter: "OpenRouter",
+  platformAzure: "Azure OpenAI",
+  platformBedrock: "Amazon Bedrock",
+  platformOllama: "Ollama",
   platformOpenaiCompatible: "OpenAI Compatible",
-  platformAnthropicCompatible: "Anthropic Compatible",
 
   // Progress stages
   stageFetching: "Fetching repo data",

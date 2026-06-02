@@ -1,11 +1,58 @@
 import { defineConfig } from "wxt";
+import { loadEnv } from "vite";
+import { existsSync } from "fs";
+import { resolve } from "path";
+
+/** 尝试加载本地开发配置（仅开发模式） */
+async function loadDevConfig(isDev: boolean): Promise<Record<string, string>> {
+  if (!isDev) {
+    console.log("[WXT] Production mode - skipping dev config");
+    return {};
+  }
+
+  const devConfigPath = resolve(process.cwd(), "dev.config.local.ts");
+  if (!existsSync(devConfigPath)) return {};
+
+  try {
+    // 使用动态 import 加载 TS 文件（Node.js 会自动处理）
+    const mod = await import(devConfigPath);
+    const config = mod.default || mod;
+    if (typeof config === "object" && config !== null) {
+      console.log("[WXT] Dev mode - loaded config from dev.config.local.ts");
+      return config as Record<string, string>;
+    }
+  } catch (e) {
+    // 如果 import 失败，尝试使用 tsx/ts-node
+    console.warn("[WXT] Could not import dev.config.local.ts directly, trying alternative...");
+  }
+
+  return {};
+}
 
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
+  vite: async (env) => {
+    const viteEnv = loadEnv(env.mode, process.cwd(), "");
+
+    // 判断是否为开发模式
+    // wxt 命令默认 mode=development，wxt build 默认 mode=production
+    const isDev = env.mode === "development";
+
+    // 尝试加载本地开发配置（仅开发模式）
+    const devApiConfig = await loadDevConfig(isDev);
+
+    return {
+      define: {
+        "import.meta.env.VITE_POSTHOG_KEY": JSON.stringify(viteEnv.VITE_POSTHOG_KEY || devApiConfig.VITE_POSTHOG_KEY || ""),
+        "import.meta.env.VITE_POSTHOG_HOST": JSON.stringify(viteEnv.VITE_POSTHOG_HOST || devApiConfig.VITE_POSTHOG_HOST || "https://us.i.posthog.com"),
+        "import.meta.env.VITE_DEV_API_CONFIG": JSON.stringify(devApiConfig),
+      },
+    };
+  },
   manifest: {
     name: "GitHub Repo Radar",
     description:
-      "发现相似 GitHub 仓库 — 基于 LLM 和向量检索的相关项目挖掘引擎",
+      "Discover similar GitHub repos — powered by LLM and vector search",
     icons: {
       "16": "icon-16.png",
       "32": "icon-32.png",
@@ -15,9 +62,19 @@ export default defineConfig({
     permissions: ["storage", "activeTab"],
     host_permissions: [
       "https://api.github.com/*",
+      "https://*.openai.com/*",
+      "https://api.anthropic.com/*",
+      "https://generativelanguage.googleapis.com/*",
+      "https://openrouter.ai/*",
+      "https://api.x.ai/*",
+      "https://api.deepseek.com/*",
+      "https://*.azure.com/*",
+      "https://*.amazonaws.com/*",
+      "https://*.googleapis.com/*",
+      "http://localhost:11434/*",
       "https://*.xiaomimimo.com/*",
       "https://*.siliconflow.cn/*",
-      "https://*.openai.com/*",
+      "https://*.posthog.com/*",
     ],
   },
   hooks: {

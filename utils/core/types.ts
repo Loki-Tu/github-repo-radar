@@ -82,6 +82,7 @@ export interface GitHubFetchPayload {
 }
 
 export interface LlmChatPayload {
+  platformId: string;
   apiBase: string;
   apiKey: string;
   model: string;
@@ -90,6 +91,7 @@ export interface LlmChatPayload {
 }
 
 export interface EmbeddingPayload {
+  platformId: string;
   apiBase: string;
   apiKey: string;
   model: string;

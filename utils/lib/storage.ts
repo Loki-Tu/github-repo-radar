@@ -61,17 +61,30 @@ export async function setCachedFeatures(
 export async function getApiConfig(): Promise<ApiConfig> {
   const result = await chrome.storage.local.get(CONFIG_KEY);
   const saved = result[CONFIG_KEY] as Partial<ApiConfig> | undefined;
-  return {
-    githubToken: saved?.githubToken ?? "",
-    llmPlatformId: saved?.llmPlatformId ?? "openai",
-    llmApiKey: saved?.llmApiKey ?? "",
-    llmModel: saved?.llmModel ?? DEFAULT_CONFIG.llmModel,
-    llmApiBase: saved?.llmApiBase ?? DEFAULT_CONFIG.llmApiBase,
-    embeddingPlatformId: saved?.embeddingPlatformId ?? "siliconflow",
-    embeddingApiKey: saved?.embeddingApiKey ?? "",
-    embeddingModel: saved?.embeddingModel ?? DEFAULT_CONFIG.embeddingModel,
-    embeddingApiBase: saved?.embeddingApiBase ?? DEFAULT_CONFIG.embeddingApiBase,
+
+  // 从构建时注入的环境变量获取开发配置
+  const devConfig = import.meta.env.VITE_DEV_API_CONFIG as Record<string, string> | undefined;
+
+  // 构建配置对象
+  const config: ApiConfig = {
+    githubToken: saved?.githubToken ?? devConfig?.githubToken ?? "",
+    llmPlatformId: saved?.llmPlatformId ?? devConfig?.llmPlatformId ?? "openai",
+    llmApiKey: saved?.llmApiKey ?? devConfig?.llmApiKey ?? "",
+    llmModel: saved?.llmModel ?? devConfig?.llmModel ?? DEFAULT_CONFIG.llmModel,
+    llmApiBase: saved?.llmApiBase ?? devConfig?.llmApiBase ?? DEFAULT_CONFIG.llmApiBase,
+    embeddingPlatformId: saved?.embeddingPlatformId ?? devConfig?.embeddingPlatformId ?? "siliconflow",
+    embeddingApiKey: saved?.embeddingApiKey ?? devConfig?.embeddingApiKey ?? "",
+    embeddingModel: saved?.embeddingModel ?? devConfig?.embeddingModel ?? DEFAULT_CONFIG.embeddingModel,
+    embeddingApiBase: saved?.embeddingApiBase ?? devConfig?.embeddingApiBase ?? DEFAULT_CONFIG.embeddingApiBase,
   };
+
+  // 如果 chrome.storage.local 中没有配置，但有 dev config，自动保存到 storage
+  // 这样设置页面就能显示这些值，用户也可以修改
+  if (!saved && devConfig && Object.keys(devConfig).length > 0) {
+    await chrome.storage.local.set({ [CONFIG_KEY]: config });
+  }
+
+  return config;
 }
 
 /** 保存 API 配置 */
