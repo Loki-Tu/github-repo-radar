@@ -99,7 +99,7 @@ export default function App({ lang, onLangChange }: AppProps) {
       });
 
       try {
-        const result = await runPipeline(url, config, 10, setProgress);
+        const result = await runPipeline(url, config, 10, setProgress, t);
         setResults(result.results);
         setTargetName(result.repo.full_name);
         setLastUrl(url);

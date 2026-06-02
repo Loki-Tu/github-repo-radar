@@ -39,16 +39,17 @@ export async function runPipeline(
   config: ApiConfig,
   topK: number = DEFAULT_TOP_K,
   onProgress: (info: ProgressInfo) => void,
+  t: Record<string, string>,
 ): Promise<PipelineResult> {
   const hasEmbedding = !!config.embeddingApiKey;
 
   // Step 1: 获取目标仓库数据
-  reportProgress(onProgress, "fetching", "正在获取仓库数据...");
+  reportProgress(onProgress, "fetching", t.stageFetching);
   const repoData = await fetchRepoData(repoUrl, config.githubToken);
-  reportProgress(onProgress, "fetching", `已获取 ${repoData.full_name} 的数据`);
+  reportProgress(onProgress, "fetching", `${t.stageFetching} - ${repoData.full_name}`);
 
   // Step 2: LLM 特征提取
-  reportProgress(onProgress, "extracting", "正在通过 LLM 提取项目特征...");
+  reportProgress(onProgress, "extracting", t.stageExtracting);
   const features = await extractFeatures(
     repoData.full_name,
     repoData.description,
@@ -56,25 +57,25 @@ export async function runPipeline(
     repoData.topics,
     config,
   );
-  reportProgress(onProgress, "extracting", "特征提取完成");
+  reportProgress(onProgress, "extracting", `${t.stageExtracting} ✓`);
 
   // Step 3: 并行多路召回
-  reportProgress(onProgress, "recalling", "正在并行搜索相似仓库...");
+  reportProgress(onProgress, "recalling", t.stageRecalling);
   const candidates = await parallelRecall(features, repoData.full_name, config);
-  reportProgress(onProgress, "recalling", `共召回 ${candidates.length} 个候选项目`);
+  reportProgress(onProgress, "recalling", `${t.stageRecalling} - ${candidates.length}`);
 
   if (candidates.length === 0) {
     return { repo: repoData, features, results: [], usedEmbedding: false };
   }
 
   // Step 4a: 快速过滤 — 选出 top 30
-  reportProgress(onProgress, "filtering", "正在快速过滤候选...");
+  reportProgress(onProgress, "filtering", t.stageFiltering);
   const fastCandidates = rankFast(candidates, repoData.topics, repoData.description || "");
-  reportProgress(onProgress, "filtering", `快速过滤完成，保留 ${fastCandidates.length} 个`);
+  reportProgress(onProgress, "filtering", `${t.stageFiltering} - ${fastCandidates.length}`);
 
   // ── 无 Embedding：只用快速过滤结果 ──
   if (!hasEmbedding) {
-    reportProgress(onProgress, "ranking", "无 Embedding 配置，使用快速过滤结果...");
+    reportProgress(onProgress, "ranking", t.stageRanking);
     const maxStars = Math.max(...fastCandidates.map((c) => c.stargazers_count), 1);
     const results: RankedResult[] = fastCandidates.slice(0, topK).map((repo) => {
       const topicOv = topicOverlap(repoData.topics, repo.topics);
@@ -89,31 +90,31 @@ export async function runPipeline(
       };
     });
     results.sort((a, b) => b.score - a.score);
-    reportProgress(onProgress, "done", `完成，共 ${results.length} 个结果（快速模式）`);
+    reportProgress(onProgress, "done", `${t.stageRanking} ✓`);
     return { repo: repoData, features, results, usedEmbedding: false };
   }
 
   // ── 有 Embedding：完整两阶段排序 ──
 
   // Step 4b: 并发获取 top 候选的 README
-  reportProgress(onProgress, "fetching-readmes", `正在并发获取 README... (0/${fastCandidates.length})`);
+  reportProgress(onProgress, "fetching-readmes", `${t.stageFetchingReadmes} (0/${fastCandidates.length})`);
   await fetchReadmesConcurrent(fastCandidates, config.githubToken);
-  reportProgress(onProgress, "fetching-readmes", `README 获取完成 (${fastCandidates.length} 个)`);
+  reportProgress(onProgress, "fetching-readmes", `${t.stageFetchingReadmes} (${fastCandidates.length})`);
 
   // Step 4c + 4d: 生成 embedding
-  reportProgress(onProgress, "embedding", "正在生成 Embedding...");
+  reportProgress(onProgress, "embedding", t.stageEmbedding);
   const targetText = buildEmbeddingText(repoData);
   const candidateTexts = fastCandidates.map(buildEmbeddingText);
   const allTexts = [targetText, ...candidateTexts];
   const allEmbeddings = await getEmbeddingsBatch(allTexts, config);
   const targetEmbedding = allEmbeddings[0];
   const candidateEmbeddings = allEmbeddings.slice(1);
-  reportProgress(onProgress, "embedding", "Embedding 生成完成");
+  reportProgress(onProgress, "embedding", `${t.stageEmbedding} ✓`);
 
   // Step 5: 精准排序
-  reportProgress(onProgress, "ranking", "正在进行精准排序...");
+  reportProgress(onProgress, "ranking", t.stageRanking);
   const results = rank(targetEmbedding, fastCandidates, candidateEmbeddings, repoData.topics, topK);
-  reportProgress(onProgress, "done", `排序完成，共 ${results.length} 个结果`);
+  reportProgress(onProgress, "done", `${t.stageRanking} ✓`);
 
   return { repo: repoData, features, results, usedEmbedding: true };
 }
