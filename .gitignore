@@ -9,3 +9,7 @@ data/
 .DS_Store
 __pycache__/
 *.pyc
+dev.config.local.ts
+dev.local.ts
+test-posthog.html
+test-posthog.js
