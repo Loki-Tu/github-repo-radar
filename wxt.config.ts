@@ -62,6 +62,7 @@ export default defineConfig({
     permissions: ["storage", "activeTab", "permissions"],
     host_permissions: [
       "https://api.github.com/*",
+      "https://*.posthog.com/*",
     ],
     optional_permissions: [
       "http://*/*",
