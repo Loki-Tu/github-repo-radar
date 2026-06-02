@@ -59,7 +59,7 @@ export default defineConfig({
       "48": "icon-48.png",
       "128": "icon-128.png",
     },
-    permissions: ["storage", "activeTab"],
+    permissions: ["storage", "activeTab", "permissions"],
     host_permissions: [
       "https://api.github.com/*",
       "https://*.openai.com/*",
@@ -71,10 +71,13 @@ export default defineConfig({
       "https://*.azure.com/*",
       "https://*.amazonaws.com/*",
       "https://*.googleapis.com/*",
-      "http://localhost:11434/*",
       "https://*.xiaomimimo.com/*",
       "https://*.siliconflow.cn/*",
       "https://*.posthog.com/*",
+    ],
+    optional_permissions: [
+      "http://*/*",
+      "https://*/*",
     ],
   },
   hooks: {

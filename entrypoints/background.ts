@@ -27,6 +27,21 @@ export default defineBackground(() => {
   });
 });
 
+/** 请求访问指定 URL 的权限 */
+async function requestPermission(url: string): Promise<boolean> {
+  try {
+    const origin = new URL(url).origin + "/*";
+    const granted = await chrome.permissions.request({
+      permissions: [],
+      origins: [origin],
+    });
+    return granted;
+  } catch (error) {
+    console.error("Failed to request permission:", error);
+    return false;
+  }
+}
+
 interface MessagePayload {
   type: string;
   payload: Record<string, unknown>;
@@ -122,6 +137,15 @@ async function handleLlmChat(
     temperature?: number;
   };
 
+  // 对于 Ollama 和 OpenAI Compatible，需要请求权限
+  if (platformId === "ollama" || platformId === "openai-compatible") {
+    const url = platformId === "ollama" ? "http://localhost:11434" : apiBase;
+    const granted = await requestPermission(url);
+    if (!granted) {
+      throw new Error(`Permission denied for ${url}`);
+    }
+  }
+
   const provider = getLlmProvider(platformId, apiBase, apiKey);
 
   const result = await generateText({
@@ -168,6 +192,15 @@ async function handleGetEmbedding(
     model: string;
     input: string;
   };
+
+  // 对于 Ollama 和 OpenAI Compatible，需要请求权限
+  if (platformId === "ollama" || platformId === "openai-compatible") {
+    const url = platformId === "ollama" ? "http://localhost:11434" : apiBase;
+    const granted = await requestPermission(url);
+    if (!granted) {
+      throw new Error(`Permission denied for ${url}`);
+    }
+  }
 
   const provider = getEmbeddingProvider(platformId, apiBase, apiKey);
 
