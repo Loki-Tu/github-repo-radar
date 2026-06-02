@@ -62,18 +62,6 @@ export default defineConfig({
     permissions: ["storage", "activeTab", "permissions"],
     host_permissions: [
       "https://api.github.com/*",
-      "https://*.openai.com/*",
-      "https://api.anthropic.com/*",
-      "https://generativelanguage.googleapis.com/*",
-      "https://openrouter.ai/*",
-      "https://api.x.ai/*",
-      "https://api.deepseek.com/*",
-      "https://*.azure.com/*",
-      "https://*.amazonaws.com/*",
-      "https://*.googleapis.com/*",
-      "https://*.xiaomimimo.com/*",
-      "https://*.siliconflow.cn/*",
-      "https://*.posthog.com/*",
     ],
     optional_permissions: [
       "http://*/*",
