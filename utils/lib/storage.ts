@@ -62,8 +62,12 @@ export async function getApiConfig(): Promise<ApiConfig> {
   const result = await chrome.storage.local.get(CONFIG_KEY);
   const saved = result[CONFIG_KEY] as Partial<ApiConfig> | undefined;
 
-  // 从构建时注入的环境变量获取开发配置
-  const devConfig = import.meta.env.VITE_DEV_API_CONFIG as Record<string, string> | undefined;
+  // 检查是否启用开发环境自动填写 API Key
+  const enableDevAutoKey = import.meta.env.VITE_ENABLE_DEV_AUTO_KEY !== "false";
+  // 从构建时注入的环境变量获取开发配置（仅开关开启时生效）
+  const devConfig = enableDevAutoKey
+    ? (import.meta.env.VITE_DEV_API_CONFIG as Record<string, string> | undefined)
+    : undefined;
 
   // 构建配置对象
   const config: ApiConfig = {

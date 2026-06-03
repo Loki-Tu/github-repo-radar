@@ -18,13 +18,61 @@ export default function SettingsPanel({ onConfigSaved }: SettingsPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState<ApiConfig | null>(null);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getApiConfig().then(setConfig);
   }, []);
 
+  /** 根据平台 ID 和 apiBase 获取需要授权的 URL */
+  const getApiUrl = (platformId: string, apiBase: string): string => {
+    switch (platformId) {
+      case "openai": return "https://api.openai.com";
+      case "anthropic": return "https://api.anthropic.com";
+      case "google": return "https://generativelanguage.googleapis.com";
+      case "xai": return "https://api.x.ai";
+      case "deepseek": return "https://api.deepseek.com";
+      case "openrouter": return "https://openrouter.ai";
+      case "azure": return apiBase || "https://*.openai.azure.com";
+      case "bedrock": return "https://*.amazonaws.com";
+      case "ollama": return "http://localhost:11434";
+      case "openai-compatible": return apiBase;
+      default: return apiBase;
+    }
+  };
+
   const handleSave = async () => {
     if (!config) return;
+    setError(null);
+
+    // 收集需要授权的 URL（去重）
+    const urlsToRequest = new Set<string>();
+    if (config.llmApiKey) {
+      urlsToRequest.add(getApiUrl(config.llmPlatformId, config.llmApiBase));
+    }
+    if (config.embeddingApiKey) {
+      urlsToRequest.add(getApiUrl(config.embeddingPlatformId, config.embeddingApiBase));
+    }
+    if (config.githubToken) {
+      urlsToRequest.add("https://api.github.com");
+    }
+
+    // 一次性请求所有权限
+    if (urlsToRequest.size > 0) {
+      const origins = Array.from(urlsToRequest)
+        .filter(Boolean)
+        .map(url => new URL(url).origin + "/*");
+
+      console.log("[Save] Requesting permissions for:", origins);
+      const granted = await chrome.permissions.request({ permissions: [], origins });
+      console.log("[Save] Permission result:", granted);
+
+      if (!granted) {
+        setError("Permission denied");
+        return;
+      }
+    }
+
     await setApiConfig(config);
     onConfigSaved(config);
     setSaved(true);
@@ -126,6 +174,11 @@ export default function SettingsPanel({ onConfigSaved }: SettingsPanelProps) {
             }
             onModelChange={(v) => setConfig({ ...config, embeddingModel: v })}
           />
+
+          {/* ── 错误提示 ── */}
+          {error && (
+            <p className="text-xs text-red-500">{error}</p>
+          )}
 
           {/* ── 保存按钮 ── */}
           <button

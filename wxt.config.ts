@@ -38,13 +38,17 @@ export default defineConfig({
     // wxt 命令默认 mode=development，wxt build 默认 mode=production
     const isDev = env.mode === "development";
 
-    // 尝试加载本地开发配置（仅开发模式）
-    const devApiConfig = await loadDevConfig(isDev);
+    // 检查是否启用开发环境自动填写 API Key
+    const enableDevAutoKey = viteEnv.VITE_ENABLE_DEV_AUTO_KEY !== "false";
+
+    // 尝试加载本地开发配置（仅开发模式且开关开启）
+    const devApiConfig = isDev && enableDevAutoKey ? await loadDevConfig(isDev) : {};
 
     return {
       define: {
         "import.meta.env.VITE_POSTHOG_KEY": JSON.stringify(viteEnv.VITE_POSTHOG_KEY || devApiConfig.VITE_POSTHOG_KEY || ""),
         "import.meta.env.VITE_POSTHOG_HOST": JSON.stringify(viteEnv.VITE_POSTHOG_HOST || devApiConfig.VITE_POSTHOG_HOST || "https://us.i.posthog.com"),
+        "import.meta.env.VITE_ENABLE_DEV_AUTO_KEY": JSON.stringify(enableDevAutoKey),
         "import.meta.env.VITE_DEV_API_CONFIG": JSON.stringify(devApiConfig),
       },
     };
@@ -64,9 +68,8 @@ export default defineConfig({
       "https://api.github.com/*",
       "https://*.posthog.com/*",
     ],
-    optional_permissions: [
-      "http://*/*",
-      "https://*/*",
+    optional_host_permissions: [
+      "<all_urls>",
     ],
   },
   hooks: {

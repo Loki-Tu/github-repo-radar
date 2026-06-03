@@ -27,49 +27,6 @@ export default defineBackground(() => {
   });
 });
 
-/** 请求访问指定 URL 的权限 */
-async function requestPermission(url: string): Promise<boolean> {
-  try {
-    const origin = new URL(url).origin + "/*";
-    const granted = await chrome.permissions.request({
-      permissions: [],
-      origins: [origin],
-    });
-    return granted;
-  } catch (error) {
-    console.error("Failed to request permission:", error);
-    return false;
-  }
-}
-
-/** 获取平台对应的 API URL */
-function getPlatformApiUrl(platformId: string, apiBase: string): string {
-  switch (platformId) {
-    case "openai":
-      return "https://api.openai.com";
-    case "anthropic":
-      return "https://api.anthropic.com";
-    case "google":
-      return "https://generativelanguage.googleapis.com";
-    case "xai":
-      return "https://api.x.ai";
-    case "deepseek":
-      return "https://api.deepseek.com";
-    case "openrouter":
-      return "https://openrouter.ai";
-    case "azure":
-      return apiBase || "https://*.openai.azure.com";
-    case "bedrock":
-      return "https://*.amazonaws.com";
-    case "ollama":
-      return "http://localhost:11434";
-    case "openai-compatible":
-      return apiBase;
-    default:
-      return apiBase;
-  }
-}
-
 interface MessagePayload {
   type: string;
   payload: Record<string, unknown>;
@@ -165,13 +122,6 @@ async function handleLlmChat(
     temperature?: number;
   };
 
-  // 动态请求平台 API 权限
-  const apiUrl = getPlatformApiUrl(platformId, apiBase);
-  const granted = await requestPermission(apiUrl);
-  if (!granted) {
-    throw new Error(`Permission denied for ${apiUrl}`);
-  }
-
   const provider = getLlmProvider(platformId, apiBase, apiKey);
 
   const result = await generateText({
@@ -218,13 +168,6 @@ async function handleGetEmbedding(
     model: string;
     input: string;
   };
-
-  // 动态请求平台 API 权限
-  const apiUrl = getPlatformApiUrl(platformId, apiBase);
-  const granted = await requestPermission(apiUrl);
-  if (!granted) {
-    throw new Error(`Permission denied for ${apiUrl}`);
-  }
 
   const provider = getEmbeddingProvider(platformId, apiBase, apiKey);
 
