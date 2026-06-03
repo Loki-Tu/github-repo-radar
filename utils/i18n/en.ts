@@ -62,10 +62,18 @@ const en: Record<string, string> = {
   topResults: "Top {count} Similar Projects",
   target: "Target:",
   scoreFormula: "Score = Semantic×0.6 + Topic×0.3 + Activity×0.1",
+  scoreFormulaNoEmbedding: "Score = Topic×0.5 + Activity×0.5",
   noDescription: "No description",
   score: "Score",
   semantic: "Semantic",
   topic: "Topic",
+
+  // Sort options
+  sortBy: "Sort",
+  sortScore: "Score",
+  sortSimilarity: "Relevance",
+  sortStars: "Stars",
+  sortTopics: "Topics",
 
   // Errors
   errorNoKeys: "Please configure LLM API Key and Embedding API Key in Settings first",

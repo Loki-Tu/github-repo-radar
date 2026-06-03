@@ -62,10 +62,18 @@ const zhCN: Record<string, string> = {
   topResults: "🏆 Top {count} 相关项目",
   target: "目标:",
   scoreFormula: "综合得分 = 语义×0.6 + Topic×0.3 + 活跃度×0.1",
+  scoreFormulaNoEmbedding: "综合得分 = Topic×0.5 + 活跃度×0.5",
   noDescription: "无描述",
   score: "综合",
   semantic: "语义",
   topic: "Topic",
+
+  // Sort options
+  sortBy: "排序",
+  sortScore: "综合得分",
+  sortSimilarity: "相关度",
+  sortStars: "Star 数",
+  sortTopics: "Topic",
 
   // Errors
   errorNoKeys: "请先在设置中配置 LLM API Key 和 Embedding API Key",

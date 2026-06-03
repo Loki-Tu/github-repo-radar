@@ -11,7 +11,9 @@ import { searchRepos } from "../api/github";
  *
  * 策略A: LLM 生成的 search_query（最精准）
  * 策略B: "{repo_name} alternative"
- * 策略C: 竞品名搜索（最多 2 个）
+ * 策略C: 竞品名搜索（最多 3 个）
+ * 策略D: "{system_type} {language}" 组合搜索
+ * 策略E: 核心特性关键词组合搜索
  */
 export async function parallelRecall(
   features: ProjectFeatures,
@@ -37,10 +39,29 @@ export async function parallelRecall(
     ),
   );
 
-  // 策略 C: 竞品名搜索（最多 2 个）
-  for (const comp of features.competitors.slice(0, 2)) {
+  // 策略 C: 竞品名搜索（最多 3 个）
+  for (const comp of features.competitors.slice(0, 3)) {
     searchTasks.push(
       searchRepos(comp, config.githubToken, 15, exclude).catch(
+        () => [] as Repo[],
+      ),
+    );
+  }
+
+  // 策略 D: "{system_type}" 搜索
+  if (features.system_type) {
+    searchTasks.push(
+      searchRepos(features.system_type, config.githubToken, 20, exclude).catch(
+        () => [] as Repo[],
+      ),
+    );
+  }
+
+  // 策略 E: 核心特性关键词组合（取前 3 个特性）
+  if (features.key_features.length >= 2) {
+    const featureQuery = features.key_features.slice(0, 3).join(" ");
+    searchTasks.push(
+      searchRepos(featureQuery, config.githubToken, 15, exclude).catch(
         () => [] as Repo[],
       ),
     );

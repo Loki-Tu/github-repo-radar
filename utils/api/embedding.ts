@@ -21,6 +21,6 @@ export async function getEmbedding(
   if (response.error) {
     throw new Error(response.error);
   }
-  // OpenAI SDK 返回的 EmbeddingResponse 对象
-  return response.data.data[0].embedding;
+  // background 返回 { data: { embedding: [...] } }
+  return response.data.embedding;
 }

@@ -10,31 +10,34 @@ import { parseJsonResponse } from "../lib/utils";
 import { README_TRUNCATE_FOR_LLM } from "../config";
 
 const SYSTEM_PROMPT =
-  "你是一个专业的开源项目分析师，擅长从项目文档中提取结构化信息。只返回 JSON，不要其他内容。";
+  "You are an expert open-source project analyst. Extract structured information from project documentation. Return JSON only, no other content.";
 
-const EXTRACT_PROMPT = `你是一个专业的开源项目分析师。请分析以下 GitHub 仓库信息，提取其核心特征。
+const EXTRACT_PROMPT = `You are an expert open-source project analyst. Analyze the following GitHub repository and extract its core features.
 
-仓库名称: {full_name}
-仓库描述: {description}
+Repository: {full_name}
+Description: {description}
 Topics: {topics}
-README (前 8000 字符):
+README (first 8000 chars):
 {readme}
 
-请严格按照以下 JSON 格式返回分析结果（不要包含其他文字，只返回 JSON）：
+Return the analysis in the following JSON format strictly (no other text, JSON only):
 {{
-    "core_problem": "该项目核心解决什么问题（一句话概括）",
-    "system_type": "项目属于什么系统类型（如：CI/CD工具、Web框架、数据库、监控平台等）",
-    "key_features": ["特性1", "特性2", "特性3", ...],
-    "competitors": ["竞品1", "竞品2", ...],
-    "search_query": "用于 GitHub 搜索的英文关键词（3-5 个词），要能搜到功能类似的项目"
+    "core_problem": "What core problem does this project solve? (one sentence)",
+    "system_type": "What system category does this project belong to? (e.g., CI/CD tool, Web framework, Database, Monitoring platform, etc.)",
+    "key_features": ["feature1", "feature2", "feature3", ...],
+    "competitors": ["competitor1", "competitor2", ...],
+    "search_query": "English keywords for GitHub search (3-5 words) to find similar projects"
 }}
 
-要求：
-1. core_problem 要精准概括项目解决的核心痛点
-2. system_type 使用通用的技术分类术语
-3. key_features 列出 5-10 个最核心的技术特性关键词
-4. competitors 列出 README 或描述中明确提到的竞品/替代方案（如果没有则返回空数组）
-5. search_query 是 3-5 个英文关键词，用于在 GitHub 上搜索到功能类似的项目。例如：图片选择器 → "android image picker library"，Web 框架 → "python web framework async"`;
+Requirements:
+1. core_problem: Precisely summarize the core pain point the project solves
+2. system_type: Use generic technical category terms
+3. key_features: List 5-10 core technical feature keywords
+4. competitors: MUST list all well-known alternatives in this domain, including:
+   - Competitors explicitly mentioned in README or description
+   - The 3-5 most popular alternatives in this field (list them even if not mentioned in README)
+   - Example: For a Node version manager, MUST include nvm, volta, nodenv, etc.
+5. search_query: 3-5 English keywords for searching similar projects on GitHub. Examples: image picker → "android image picker library", web framework → "python web framework async"`;
 
 /**
  * 提取项目特征（带缓存）
@@ -54,7 +57,7 @@ export async function extractFeatures(
   const prompt = EXTRACT_PROMPT.replace("{full_name}", fullName)
     .replace("{description}", description)
     .replace("{readme}", readme.slice(0, README_TRUNCATE_FOR_LLM))
-    .replace("{topics}", topics.length > 0 ? topics.join(", ") : "无");
+    .replace("{topics}", topics.length > 0 ? topics.join(", ") : "None");
 
   const resultText = await chatCompletion({
     platformId: config.llmPlatformId,

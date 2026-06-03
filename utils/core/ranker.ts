@@ -119,7 +119,9 @@ export async function getEmbeddingsBatch(
         input: texts[i],
       });
       embeddings.push(emb);
-    } catch {
+      console.log(`[Embedding] ${i + 1}/${texts.length} success, dim=${emb.length}`);
+    } catch (err) {
+      console.error(`[Embedding] ${i + 1}/${texts.length} failed:`, err);
       // 失败时用零向量填充
       embeddings.push(new Array(embeddings[0]?.length || 1536).fill(0));
     }

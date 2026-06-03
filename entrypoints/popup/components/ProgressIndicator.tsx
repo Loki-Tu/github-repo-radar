@@ -1,7 +1,8 @@
+import { useMemo } from "react";
 import type { ProgressInfo } from "../../../utils/core/types";
 import { useI18n } from "../../../utils/i18n";
 
-const STAGE_ORDER = [
+const ALL_STAGES = [
   "fetching",
   "extracting",
   "recalling",
@@ -11,12 +12,27 @@ const STAGE_ORDER = [
   "ranking",
 ] as const;
 
+const STAGES_WITHOUT_EMBEDDING = [
+  "fetching",
+  "extracting",
+  "recalling",
+  "filtering",
+  "ranking",
+] as const;
+
 interface ProgressIndicatorProps {
   progress: ProgressInfo | null;
+  hasEmbedding: boolean;
 }
 
-export default function ProgressIndicator({ progress }: ProgressIndicatorProps) {
+export default function ProgressIndicator({ progress, hasEmbedding }: ProgressIndicatorProps) {
   const t = useI18n();
+
+  const stageOrder = useMemo(
+    () => hasEmbedding ? [...ALL_STAGES] : [...STAGES_WITHOUT_EMBEDDING],
+    [hasEmbedding]
+  );
+
   if (!progress) return null;
 
   const stageLabels: Record<string, string> = {
@@ -29,13 +45,13 @@ export default function ProgressIndicator({ progress }: ProgressIndicatorProps) 
     ranking: `📊 ${t.stageRanking}`,
   };
 
-  const currentIndex = STAGE_ORDER.indexOf(progress.stage as typeof STAGE_ORDER[number]);
+  const currentIndex = stageOrder.indexOf(progress.stage as typeof stageOrder[number]);
 
   return (
     <div className="space-y-3 py-3">
       {/* 进度条 */}
       <div className="flex gap-1">
-        {STAGE_ORDER.map((stage, i) => (
+        {stageOrder.map((stage, i) => (
           <div
             key={stage}
             className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
@@ -59,7 +75,7 @@ export default function ProgressIndicator({ progress }: ProgressIndicatorProps) 
 
       {/* 阶段标签列表 */}
       <div className="flex flex-wrap gap-1">
-        {STAGE_ORDER.map((stage, i) => (
+        {stageOrder.map((stage, i) => (
           <span
             key={stage}
             className={`text-xs px-2 py-0.5 rounded-full ${

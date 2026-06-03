@@ -204,11 +204,11 @@ export default function App({ lang, onLangChange }: AppProps) {
         )}
 
         {/* Searching */}
-        {state === "searching" && <ProgressIndicator progress={progress} />}
+        {state === "searching" && <ProgressIndicator progress={progress} hasEmbedding={!!config?.embeddingApiKey} />}
 
         {/* Results */}
         {state === "results" && (
-          <ResultList results={results} targetName={targetName} />
+          <ResultList results={results} targetName={targetName} hasEmbedding={!!config?.embeddingApiKey} />
         )}
 
         {/* Error */}

@@ -5,9 +5,10 @@ import { trackResultClicked } from "../../../utils/analytics";
 interface ResultItemProps {
   result: RankedResult;
   rank: number;
+  hasEmbedding: boolean;
 }
 
-export default function ResultItem({ result, rank }: ResultItemProps) {
+export default function ResultItem({ result, rank, hasEmbedding }: ResultItemProps) {
   const t = useI18n();
   const { repo, score, cosine_similarity, topic_overlap } = result;
   const desc = repo.description || t.noDescription;
@@ -58,9 +59,11 @@ export default function ResultItem({ result, rank }: ResultItemProps) {
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
               {t.score} {score.toFixed(2)}
             </span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-              {t.semantic} {cosine_similarity.toFixed(2)}
-            </span>
+            {hasEmbedding && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                {t.semantic} {cosine_similarity.toFixed(2)}
+              </span>
+            )}
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
               {t.topic} {topic_overlap.toFixed(2)}
             </span>
